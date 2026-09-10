@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhotoMail — Enviar fotos por e-mail</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">PhotoMail</div>
+</div>
+
+<div class="page">
+  <h1>Enviar fotos por e-mail</h1>
+  <p class="text-muted page-lede">Escolha um destinatário da lista, adicione as fotos e envie.</p>
+
+  <div class="columns">
+
+    <div class="col-recipients">
+      <h3>Destinatário</h3>
+      <hr class="hr">
+      <div id="recipient-list"></div>
+    </div>
+
+    <div class="col-photos">
+      <h3>Fotos</h3>
+      <hr class="hr">
+
+      <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Selecionar fotos">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v12"></path>
+          <path d="m17 8-5-5-5 5"></path>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        </svg>
+        <div class="dropzone-title">Arraste fotos aqui ou clique para selecionar</div>
+        <div class="text-muted dropzone-hint">JPG ou PNG</div>
+      </div>
+      <input id="file-input" type="file" accept="image/*" multiple style="display:none;">
+
+      <div id="photo-grid" class="photo-grid" hidden></div>
+
+      <hr class="hr" style="margin-top:var(--space-6);">
+      <div class="footer-row">
+        <span id="file-count" class="tag">Nenhuma foto selecionada</span>
+        <button id="send-btn" class="btn btn-primary" disabled>
+          <svg id="send-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin" hidden>
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+          </svg>
+          <svg id="send-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2 11 13"></path>
+            <path d="M22 2 15 22l-4-9-9-4Z"></path>
+          </svg>
+          <span id="send-label">Enviar fotos</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="dialog-backdrop" class="dialog-backdrop" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+    <div id="dialog-title" class="dialog-title">Fotos enviadas</div>
+    <div id="dialog-body" class="dialog-body"></div>
+    <div class="dialog-actions">
+      <button id="dialog-ok" class="btn btn-primary">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
