@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="stylesheet" href="_ds/modernist-793bf493-90d0-4847-b48b-9a6489acd58e/styles.css">
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);">
+  <div class="nav">
+    <div class="nav-brand">PhotoMail</div>
+  </div>
+  <div style="max-width:960px;margin:0 auto;padding:var(--space-8) var(--space-4);">
+    <h1 style="margin-bottom:var(--space-2);">Enviar fotos por e-mail</h1>
+    <p class="text-muted" style="font-size:15px;max-width:520px;">Escolha um destinatário da lista, adicione as fotos e envie.</p>
+
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-8);margin-top:var(--space-6);align-items:flex-start;">
+
+      <div style="flex:1 1 260px;">
+        <h3>Destinatário</h3>
+        <hr class="hr">
+        <sc-for list="{{ recipients }}" as="r" hint-placeholder-count="4">
+          <label class="radio" style="display:flex;align-items:flex-start;gap:var(--space-2);margin-bottom:var(--space-3);cursor:pointer;">
+            <input type="radio" name="recipient" checked="{{ r.checked }}" onChange="{{ r.onSelect }}">
+            <span class="dot" style="margin-top:2px;"></span>
+            <span>
+              <span style="display:block;font-weight:600;font-size:14px;">{{ r.name }}</span>
+              <span class="text-muted" style="font-size:12px;">{{ r.email }}</span>
+            </span>
+          </label>
+        </sc-for>
+      </div>
+
+      <div style="flex:2 1 380px;">
+        <h3>Fotos</h3>
+        <hr class="hr">
+
+        <div onClick="{{ openPicker }}" onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="{{ dropzoneStyle }}">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="margin:0 auto var(--space-2);color:var(--color-accent);display:block;">
+            <path d="M12 3v12"></path>
+            <path d="m17 8-5-5-5 5"></path>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          </svg>
+          <div style="font-size:14px;font-weight:600;">Arraste fotos aqui ou clique para selecionar</div>
+          <div class="text-muted" style="font-size:12px;margin-top:4px;">JPG ou PNG</div>
+        </div>
+        <input ref="{{ fileInputRef }}" type="file" accept="image/*" multiple="{{ true }}" onChange="{{ onFileInputChange }}" style="display:none;">
+
+        <sc-if value="{{ hasFiles }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:var(--space-3);margin-top:var(--space-4);">
+            <sc-for list="{{ files }}" as="f" hint-placeholder-count="0">
+              <div style="position:relative;">
+                <div class="grayscale" style="aspect-ratio:1;overflow:hidden;background:var(--color-surface);">
+                  <img src="{{ f.dataUrl }}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                </div>
+                <button class="btn btn-icon" onClick="{{ f.onRemove }}" style="position:absolute;top:4px;right:4px;width:22px;height:22px;background:var(--color-bg);border:1px solid var(--color-divider);">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                </button>
+                <div class="text-muted" style="font-size:10px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <hr class="hr" style="margin-top:var(--space-6);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;">
+          <span class="tag tag-neutral">{{ fileCountLabel }}</span>
+          <button class="btn btn-primary" disabled="{{ sendDisabled }}" onClick="{{ send }}">
+            <sc-if value="{{ sending }}" hint-placeholder-val="{{ false }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="animation:spin 0.8s linear infinite;display:block;">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+            </sc-if>
+            <sc-if value="{{ notSending }}" hint-placeholder-val="{{ true }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="display:block;">
+                <path d="M22 2 11 13"></path>
+                <path d="M22 2 15 22l-4-9-9-4Z"></path>
+              </svg>
+            </sc-if>
+            <span>{{ sendLabel }}</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <sc-if value="{{ sentOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop">
+      <div class="dialog">
+        <div class="dialog-title">Fotos enviadas</div>
+        <div class="dialog-body">{{ sentMessage }}</div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" onClick="{{ closeDialog }}">OK</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  fileInputRef = React.createRef();
+  state = {
+    recipients: [
+      { id: 'familia', name: 'Família', email: 'familia.fotos@gmail.com' },
+      { id: 'fotografo', name: 'Fotógrafo do evento', email: 'contato@estudiolente.com.br' },
+      { id: 'marketing', name: 'Equipe de Marketing', email: 'marketing@novaideia.com' },
+      { id: 'backup', name: 'Backup pessoal', email: 'meuarquivo@outlook.com' }
+    ],
+    selectedId: null,
+    files: [],
+    dragOver: false,
+    sending: false,
+    sentOpen: false,
+    sentEmail: '',
+    sentCount: 0
+  };
+
+  selectRecipient(id) { this.setState({ selectedId: id }); }
+
+  addFiles(fileList) {
+    const arr = Array.from(fileList || []).filter(f => f.type.startsWith('image/'));
+    arr.forEach(file => {
+      const id = Math.random().toString(36).slice(2);
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.setState(s => ({ files: [...s.files, { id, name: file.name, dataUrl: reader.result }] }));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  removeFile(id) { this.setState(s => ({ files: s.files.filter(f => f.id !== id) })); }
+
+  openPicker() { this.fileInputRef.current && this.fileInputRef.current.click(); }
+  onFileInputChange(e) { this.addFiles(e.target.files); e.target.value = ''; }
+  onDragOver(e) { e.preventDefault(); if (!this.state.dragOver) this.setState({ dragOver: true }); }
+  onDragLeave() { this.setState({ dragOver: false }); }
+  onDrop(e) {
+    e.preventDefault();
+    this.setState({ dragOver: false });
+    this.addFiles(e.dataTransfer.files);
+  }
+
+  send() {
+    const recipient = this.state.recipients.find(r => r.id === this.state.selectedId);
+    if (!recipient || this.state.files.length === 0 || this.state.sending) return;
+    const count = this.state.files.length;
+    this.setState({ sending: true });
+    setTimeout(() => {
+      this.setState({ sending: false, sentOpen: true, sentEmail: recipient.email, sentCount: count });
+    }, 1400);
+  }
+
+  closeDialog() { this.setState({ sentOpen: false, files: [] }); }
+
+  renderVals() {
+    const { recipients, selectedId, files, dragOver, sending, sentOpen, sentEmail, sentCount } = this.state;
+    const canSend = !!selectedId && files.length > 0 && !sending;
+    const dropzoneStyle = `border:2px dashed ${dragOver ? 'var(--color-accent)' : 'var(--color-divider)'};padding:var(--space-8) var(--space-4);text-align:center;cursor:pointer;background:${dragOver ? 'var(--color-accent-100)' : 'var(--color-surface)'};transition:border-color 0.15s,background 0.15s;`;
+    return {
+      recipients: recipients.map(r => ({ ...r, checked: r.id === selectedId, onSelect: () => this.selectRecipient(r.id) })),
+      files: files.map(f => ({ ...f, onRemove: () => this.removeFile(f.id) })),
+      hasFiles: files.length > 0,
+      fileCountLabel: files.length === 0 ? 'Nenhuma foto selecionada' : (files.length === 1 ? '1 foto selecionada' : `${files.length} fotos selecionadas`),
+      fileInputRef: this.fileInputRef,
+      openPicker: () => this.openPicker(),
+      onFileInputChange: (e) => this.onFileInputChange(e),
+      onDragOver: (e) => this.onDragOver(e),
+      onDragLeave: () => this.onDragLeave(),
+      onDrop: (e) => this.onDrop(e),
+      dropzoneStyle,
+      sending,
+      notSending: !sending,
+      sendDisabled: !canSend,
+      sendLabel: sending ? 'Enviando...' : 'Enviar fotos',
+      send: () => this.send(),
+      sentOpen,
+      sentMessage: `${sentCount} foto(s) enviada(s) para ${sentEmail}.`,
+      closeDialog: () => this.closeDialog()
+    };
+  }
+}
+</script>
+</body>
+</html>
