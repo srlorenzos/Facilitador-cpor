@@ -386,7 +386,7 @@
       const subject = document.createElement('h4');
       subject.className = 'email-preview-subject';
       subject.textContent = 'Fotos enviadas';
-      emailPreviewEl.insertBefore(subject, body);
+      emailPreviewEl.appendChild(subject);
 
       if (state.livre.message.trim()) body.appendChild(para(state.livre.message.trim()));
       body.appendChild(state.livre.files.length ? previewThumbGrid(state.livre.files) : emptyNote('Nenhuma foto anexada.'));
@@ -396,7 +396,7 @@
       const subject = document.createElement('h4');
       subject.className = 'email-preview-subject';
       subject.textContent = subjectText;
-      emailPreviewEl.insertBefore(subject, body);
+      emailPreviewEl.appendChild(subject);
 
       const empresa = c.empresa.trim() || '[Empresa]';
       body.appendChild(para('Bom dia,'));
