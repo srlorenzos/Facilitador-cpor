@@ -1,25 +1,24 @@
-# CODING AGENTS: READ THIS FIRST
+# Facilitador de CPOR
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+Ferramenta para montar rapidamente o e-mail de **Conclusão de Projeto (CPOR)** de migrações/implantações Microsoft 365: você digita o nome da empresa, joga as capturas de tela de evidência (Teams, SharePoint, OneDrive, Apps 365, Exchange, licenças, domínio, etc.) e a ferramenta identifica sozinha em qual seção cada imagem entra, monta o e-mail ao vivo e deixa pronto para copiar e colar no seu cliente de e-mail.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+## Onde usar
 
-## What you should do — IMPORTANT
+A versão em uso é publicada como um **Claude Artifact** (roda no navegador, com identificação automática de imagem, salvamento automático por empresa e histórico de CPORs — recursos que dependem do runtime do Artifact e não existem na versão estática deste repositório).
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+> Peça o link do Artifact publicado a quem está mantendo este projeto — artifacts do Claude são privados por padrão.
 
-**Read `project/Enviar Fotos por Email.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## O que tem neste repositório
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+- `app/` — uma versão estática (HTML/CSS/JS puro, sem build) do fluxo original de "enviar fotos por e-mail". Serve como base/histórico; não tem identificação automática por imagem nem salvamento (esses recursos dependem de capacidades exclusivas do Claude Artifact).
+- `project/`, `chats/` — material do handoff de design original (Claude Design) que deu origem ao protótipo. Histórico, mantido por referência.
 
-## About the design files
+## Histórico do projeto
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+1. Começou como um protótipo genérico de "enviar fotos por e-mail" (Claude Design → `project/Enviar Fotos por Email.dc.html`).
+2. Virou o **Facilitador de CPOR**: modelo de e-mail de conclusão de projeto Microsoft 365, com identificação automática de evidências por seção, pré-visualização ao vivo, cópia do assunto/corpo com imagens em tamanho real, e CPORs salvos por empresa.
+3. Um fluxo futuro, "Criar Engagement POE", está reservado na navegação por abas do Artifact, ainda não implementado.
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+## Nota sobre dono/nome do repositório
 
-## Bundle contents
-
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Site para enviar fotos` project files (HTML prototypes, assets, components)
+Este repositório está hospedado em `brinfotec/enviar-fotos-por-email`. Renomear o repositório e transferir a propriedade para outra conta são ações administrativas do GitHub que precisam ser feitas por quem tem acesso de administrador nas **configurações do repositório no próprio GitHub** (Settings → renomear / Settings → Danger Zone → Transfer ownership) — não é algo que uma sessão do Claude Code consiga fazer por API neste ambiente.
