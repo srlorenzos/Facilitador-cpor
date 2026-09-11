@@ -70,6 +70,11 @@ body {
   line-height: 1.55;
   font-weight: 400;
 }
+body.font-size-small { font-size: 13px; }
+body.font-size-large { font-size: 17px; }
+body.hide-lede .page-lede { display: none; }
+body.table-compact .ata-edit-table td, body.table-compact .ata-edit-table th { padding: 1px 5px; }
+body.table-compact .ata-edit-table input, body.table-compact .ata-edit-table select { min-width: 100px; }
 
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
@@ -108,14 +113,38 @@ p { margin: 0 0 var(--space-3); }
 .nav-status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-divider); }
 .nav-status.online .dot { background: var(--color-good); }
 
-.tabbar { display: flex; gap: 2px; padding: 0 var(--space-4); border-bottom: 2px solid var(--color-divider); overflow-x: auto; }
+.tabbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 0 var(--space-4); border-bottom: 2px solid var(--color-divider); }
 .tab-btn {
   font-family: var(--font-heading); font-weight: 600; font-size: 13px; cursor: pointer;
-  background: none; border: none; padding: var(--space-3) var(--space-3); color: var(--color-text);
+  background: none; border: none; border-radius: var(--radius-md) var(--radius-md) 0 0;
+  padding: var(--space-3) var(--space-3); color: var(--color-text);
   border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap;
+  transition: background-color 0.12s, color 0.12s;
 }
-.tab-btn:hover { color: var(--color-accent); }
-.tab-btn.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.tab-btn:hover { color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
+.tab-btn.active { color: var(--color-accent); border-bottom-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.tab-btn-highlight:not(.active) { background: var(--color-accent-100); border-bottom-color: color-mix(in srgb, var(--color-accent) 35%, transparent); }
+
+/* — Portal / Links: an intranet-style landing page of quick links — */
+.portal-hero {
+  padding: var(--space-6); margin: var(--space-4) 0 var(--space-6); background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-700) 100%);
+  color: #fff;
+}
+.portal-hero h2 { margin: 0 0 4px; color: #fff; }
+.portal-hero p { margin: 0; opacity: 0.9; }
+.portal-group { margin-bottom: var(--space-8); }
+.portal-group-title { display: flex; align-items: center; gap: var(--space-2); font-size: 15px; margin-bottom: var(--space-3); padding-bottom: var(--space-2); border-bottom: 2px solid var(--color-divider); }
+.portal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--space-3); }
+.portal-tile {
+  display: flex; flex-direction: column; gap: 4px; padding: var(--space-4); background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-left: 4px solid var(--color-accent); text-decoration: none; color: var(--color-text);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.portal-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-left-color: var(--color-accent-700); }
+.portal-tile .icon { font-size: 26px; }
+.portal-tile .title { font-family: var(--font-heading); font-weight: 700; font-size: 14px; }
+.portal-tile .desc { font-size: 12px; color: color-mix(in srgb, var(--color-text) 60%, transparent); }
+.portal-tile.sensitive { border-left-color: #b8860b; }
 
 .page { max-width: 1080px; margin: 0 auto; padding: var(--space-6) var(--space-4) calc(var(--space-8) * 2); }
 .page-lede { font-size: 14px; max-width: 620px; }
@@ -127,6 +156,7 @@ p { margin: 0 0 var(--space-3); }
 
 /* — form fields — */
 .field > label { display: block; font-size: 12px; margin-bottom: 5px; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+.required-mark { color: var(--color-accent); font-weight: 700; cursor: help; }
 .input {
   width: 100%; min-height: 36px; padding: 6px 10px; font: inherit; font-size: 14px; color: var(--color-text);
   caret-color: var(--color-accent); background: var(--color-surface);
@@ -194,6 +224,24 @@ select.input { min-height: 30px; padding: 3px 6px; font-size: 12px; }
 .saved-doc-row .actions { display: flex; gap: 6px; }
 .saved-docs-empty { font-size: 13px; margin-top: var(--space-3); }
 
+.saved-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-3); margin: var(--space-4) 0 var(--space-6); }
+.saved-overview .stat-card { text-align: center; }
+.saved-cat-card { font-family: inherit; color: inherit; background: var(--color-bg); text-align: center; cursor: pointer; transition: border-color 0.12s, background-color 0.12s; }
+.saved-cat-card:hover { border-color: var(--color-accent); }
+.saved-cat-card.active { border-color: var(--color-accent); background: var(--color-accent-100); }
+.saved-cat-card.active .stat-value { color: var(--color-accent-700); }
+.saved-section { margin-bottom: var(--space-8); }
+.saved-section-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.saved-section-head h3 { margin: 0; }
+.saved-section-head .count { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--color-neutral-100); color: var(--color-neutral-800); }
+.saved-section-empty { font-size: 13px; padding: var(--space-3); background: var(--color-surface); color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.saved-consulta-note {
+  display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3);
+  background: var(--color-accent-100); border-left: 3px solid var(--color-accent); margin-top: var(--space-2);
+}
+.saved-consulta-note a { color: var(--color-accent-700); font-weight: 700; text-decoration: none; }
+.saved-consulta-note a:hover { text-decoration: underline; }
+
 /* — stub tab — */
 .stub-card {
   margin-top: var(--space-4); padding: var(--space-8) var(--space-4); text-align: center;
@@ -214,6 +262,21 @@ select.input { min-height: 30px; padding: 3px 6px; font-size: 12px; }
 @keyframes pulse { 50% { opacity: 0.3; } }
 
 /* — settings: segmented control + checkbox — */
+/* — Configurações: sidebar/cascading menu — */
+.config-layout { display: flex; gap: var(--space-6); margin-top: var(--space-4); align-items: flex-start; flex-wrap: wrap; }
+.config-nav { display: flex; flex-direction: column; gap: 2px; flex: 0 0 220px; min-width: 200px; }
+.config-nav-btn {
+  text-align: left; font-family: var(--font-heading); font-weight: 600; font-size: 13px; cursor: pointer;
+  background: none; border: none; border-left: 3px solid transparent; padding: 10px var(--space-3); color: var(--color-text);
+}
+.config-nav-btn:hover { background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
+.config-nav-btn.active { border-left-color: var(--color-accent); color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.config-content { flex: 1; min-width: 280px; }
+.config-section h3 { margin-top: 0; }
+.team-members-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); max-width: 420px; }
+.team-member-row { display: flex; gap: var(--space-2); align-items: center; }
+.team-member-row input { flex: 1; }
+
 .seg { display: inline-flex; flex-wrap: wrap; overflow: hidden; border: 1px solid var(--color-divider); border-radius: var(--radius-md); margin-top: var(--space-3); }
 .seg-opt { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
@@ -336,6 +399,118 @@ input:checked + .poe-check::after, .poe-check.on::after {
 .poe-list-cols { display: flex; border: 1px solid #000; border-top: none; }
 .poe-list-cols ul { flex: 1; margin: 0; padding: 6px 8px 6px 22px; font-size: 9px; border-left: 1px solid #000; }
 .poe-list-cols ul:first-child { border-left: none; }
+
+/* — Ata de Reunião replica (Checklist de Finalização) — faithful to the
+   partner's own Excel template: brand blue #0078D4, light-blue section
+   bars for sections 1-3, solid blue for 4-6, gray meta bars, yellow table
+   header for pending items. The Excel "CONFIGURAÇÃO" panel (columns I:M)
+   sits outside the sheet's own print area ('Ata de Reunião'!$B:$G), so
+   it's edit-only here too and never appears in the printed page/PDF. */
+.ata-doc-scroller { margin-top: var(--space-4); overflow: auto; max-height: 640px; background: var(--color-neutral-100); padding: var(--space-4); }
+.ata-doc { background: #fff; color: #000; }
+.ata-page {
+  width: 816px; min-height: 1056px; margin: 0 auto var(--space-4); background: #fff; color: #000;
+  padding: 22px 34px 30px; box-shadow: var(--shadow-md); position: relative;
+  font-family: Calibri, "Segoe UI", Arial, sans-serif; font-size: 9.5px; line-height: 1.3;
+}
+.ata-page:last-child { margin-bottom: 0; }
+.ata-footer { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 7.5px; color: #333; }
+
+.ata-brand { text-align: center; font-size: 19px; font-weight: 700; color: #0078D4; border: 1px solid #000; padding: 5px 8px 1px; font-family: Calibri, Arial, sans-serif; }
+.ata-subtitle { text-align: center; font-size: 10px; color: #666; border: 1px solid #000; border-top: none; padding: 0 8px 4px; font-family: Calibri, Arial, sans-serif; }
+.ata-titlebar { text-align: center; font-size: 12px; font-weight: 700; color: #fff; background: #0078D4; border: 1px solid #000; border-top: none; padding: 5px; }
+.ata-metabar { text-align: center; font-size: 8.5px; color: #000; background: #F0F0F0; border: 1px solid #000; border-top: none; padding: 2px 8px; }
+
+.ata-section-bar { font-size: 10px; font-weight: 700; padding: 3px 10px; border: 1px solid #000; border-top: none; }
+.ata-section-bar.light { background: #D9E8FB; color: #000; }
+.ata-section-bar.dark { background: #0078D4; color: #fff; }
+.ata-section-note { font-size: 8px; color: #666; background: #F0F0F0; padding: 2px 10px; border: 1px solid #000; border-top: none; }
+
+.ata-row { display: flex; border: 1px solid #000; border-top: none; }
+.ata-pair { display: flex; flex: 1; align-items: center; min-width: 0; }
+.ata-pair + .ata-pair { border-left: 1px solid #000; }
+.ata-pair .lbl { font-weight: 700; font-size: 8.5px; padding: 2px 6px; white-space: nowrap; }
+.ata-pair .val { font-size: 8.5px; padding: 2px 6px; flex: 1; overflow-wrap: break-word; }
+.ata-pair .val.link { color: #467886; }
+.ata-pair.full { flex: 0 0 100%; }
+
+.ata-objective { border: 1px solid #0078D4; border-top: none; padding: 5px 10px; font-size: 9px; min-height: 40px; white-space: pre-wrap; }
+
+.ata-table { width: 100%; border-collapse: collapse; border: 1px solid #000; border-top: none; }
+.ata-table th { background: #D0E4F5; font-size: 8px; font-weight: 700; padding: 2px 3px; border: 1px solid #000; text-align: center; }
+.ata-table td { font-size: 8px; padding: 2px 4px; border: 1px solid #000; text-align: center; overflow-wrap: break-word; }
+.ata-table.acoes th { background: #FFF3CD; }
+.ata-table tbody tr:nth-child(even) td { background: #FFFBF0; }
+.ata-table.participantes tbody tr:nth-child(even) td { background: #F8F8F8; }
+.ata-table.participantes th { background: #D0E4F5; }
+
+.ata-approval-bar { text-align: center; font-size: 10px; font-weight: 700; color: #fff; background: #0078D4; border: 1px solid #000; border-top: none; padding: 4px; }
+.ata-approval-grid { display: flex; border: 1px solid #000; border-top: none; }
+.ata-approval-col { flex: 1; font-size: 8.5px; }
+.ata-approval-col + .ata-approval-col { border-left: 1px solid #000; }
+.ata-approval-col .hdr { font-weight: 700; background: #F0F0F0; padding: 2px 8px; border-bottom: 1px solid #000; }
+.ata-approval-col .line { padding: 2px 8px; }
+
+.ata-footer-bar { text-align: center; font-size: 7.5px; color: #888; border: 1px solid #000; border-top: none; padding: 2px; }
+.ata-footer-bar.rule { color: #0078D4; letter-spacing: -1px; }
+.ata-footer-bar.pmbok { color: #666; }
+.ata-footer-bar.last { border-bottom: 1px solid #000; }
+
+/* — editing UI for the Ata tab (config panel + dynamic tables) — not part
+   of the printed document, mirrors the rest of the app's own form style — */
+.ata-config-panel { border: 1px solid var(--color-divider); padding: var(--space-4); margin-top: var(--space-3); }
+.ata-config-groups { display: flex; gap: var(--space-6); flex-wrap: wrap; }
+.ata-config-group { flex: 1; min-width: 220px; }
+.ata-config-group h4 { margin: 0 0 var(--space-2); font-size: 13px; }
+.ata-config-group .checkbox { display: flex; margin-bottom: 4px; font-size: 13px; }
+/* Tables have many columns and need room to be readable — scroll the
+   table horizontally instead of squeezing every input down to
+   unreadable width. Each input keeps a sane minimum width of its own so
+   a value (or its placeholder hint) is never clipped. */
+.table-scroll { overflow-x: auto; margin-top: var(--space-3); padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: var(--color-accent) transparent; }
+.table-scroll::-webkit-scrollbar { height: 10px; }
+.table-scroll::-webkit-scrollbar-track { background: var(--color-neutral-100); }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--color-accent); border-radius: 999px; }
+.table-scroll::-webkit-scrollbar-thumb:hover { background: var(--color-accent-700); }
+.ata-edit-table { width: 100%; border-collapse: collapse; }
+.ata-edit-table th { text-align: left; font-size: 11px; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.03em; padding: 4px 8px; border-bottom: 2px solid var(--color-divider); white-space: nowrap; }
+.ata-edit-table td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid var(--color-divider); }
+.ata-edit-table input, .ata-edit-table select, .ata-edit-table textarea { width: 100%; min-width: 130px; }
+.ata-edit-table td:has(textarea) textarea, .ata-edit-table td:has(input[type="text"]):nth-child(1) input { min-width: 160px; }
+.ata-edit-table input[type="checkbox"] { min-width: 0; width: auto; }
+.ata-edit-table .preset-wrap { min-width: 150px; }
+.ata-edit-table .preset-wrap input { margin-top: 4px; }
+.ata-edit-table .row-remove-btn { background: none; border: none; cursor: pointer; color: var(--color-text); opacity: 0.55; padding: 4px; }
+.ata-edit-table .row-remove-btn:hover { opacity: 1; color: var(--color-accent); }
+.consult-links { min-width: 130px; }
+
+/* — status badges (Consulta de Tenant ID / Consulta de Elegibilidade) —
+   same palette Excel's own conditional formatting uses, so the on-screen
+   table and the exported spreadsheet read as the same thing. */
+.status-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.status-badge.green { background: #C6EFCE; color: #006100; }
+.status-badge.yellow { background: #FFEB9C; color: #9C6500; }
+.status-badge.red { background: #FFC7CE; color: #9C0006; }
+.status-badge.gray { background: var(--color-neutral-100); color: var(--color-text); }
+
+.stat-card { border: 1px solid var(--color-divider); padding: var(--space-3) var(--space-4); flex: 1; min-width: 160px; }
+.stat-card .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+.stat-card .stat-value { font-size: 26px; font-family: var(--font-heading); font-weight: var(--font-heading-weight); }
+.stat-row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin: var(--space-3) 0; }
+.legend-row { display: flex; align-items: center; gap: var(--space-2); font-size: 13px; margin-bottom: 4px; }
+
+.quick-links { display: flex; gap: var(--space-2); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
+.link-btn {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+  padding: 6px 12px; border: 1px solid var(--color-divider); color: var(--color-text); text-decoration: none;
+  background: var(--color-surface);
+}
+.link-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.consult-links { display: flex; flex-direction: column; gap: 2px; }
+.consult-links a { font-size: 10.5px; color: var(--color-accent); text-decoration: none; white-space: nowrap; }
+.consult-links a:hover { text-decoration: underline; }
+
+.paste-box { width: 100%; font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 12px; }
 </style>
 
 <div class="nav">
@@ -344,23 +519,26 @@ input:checked + .poe-check::after, .poe-check.on::after {
 </div>
 
 <div class="tabbar" role="tablist">
-  <button class="tab-btn active" data-tab="criar-cpor" role="tab">Criar CPOR</button>
-  <button class="tab-btn" data-tab="engagement-poe" role="tab">Criar Engagement POE</button>
-  <button class="tab-btn" data-tab="salvos" role="tab">Documentos salvos</button>
-  <button class="tab-btn" data-tab="config" role="tab">Configurações</button>
+  <button class="tab-btn tab-btn-highlight active" data-tab="links" role="tab">🏢 Portal / Links</button>
+  <button class="tab-btn" data-tab="criar-cpor" role="tab">📧 Criar CPOR</button>
+  <button class="tab-btn" data-tab="engagement-poe" role="tab">📄 Engagement POE</button>
+  <button class="tab-btn" data-tab="ata" role="tab">✅ Checklist de Finalização</button>
+  <button class="tab-btn" data-tab="tenant" role="tab">🌐 Tenant ID</button>
+  <button class="tab-btn" data-tab="salvos" role="tab">📁 Documentos salvos</button>
+  <button class="tab-btn" data-tab="config" role="tab">⚙️ Configurações</button>
 </div>
 
 <div class="page">
 
   <!-- Criar CPOR -->
-  <section id="tab-criar-cpor" class="tab-panel">
+  <section id="tab-criar-cpor" class="tab-panel" hidden>
     <h1>Criar CPOR</h1>
     <p class="text-muted page-lede">Digite o nome da empresa e jogue todas as capturas de tela — cada uma vai sozinha para a seção certa. O e-mail é montado ao vivo à direita e salvo automaticamente.</p>
 
     <div class="workspace">
       <div class="builder-col">
         <div class="field">
-          <label for="empresa-input">Nome da empresa</label>
+          <label for="empresa-input">Nome da empresa <span class="required-mark" title="Necessário para salvar automaticamente">*</span></label>
           <input id="empresa-input" class="input" type="text" placeholder="Ex.: AMCOM">
         </div>
 
@@ -429,7 +607,7 @@ input:checked + .poe-check::after, .poe-check.on::after {
         <input id="poe-partner" class="input" type="text" placeholder="Ex.: Selbetti">
       </div>
       <div class="field">
-        <label for="poe-customer">Empresa cliente (quem recebe o CPOR)</label>
+        <label for="poe-customer">Empresa cliente (quem recebe o CPOR) <span class="required-mark" title="Necessário para salvar automaticamente">*</span></label>
         <input id="poe-customer" class="input" type="text" placeholder="Ex.: Berkan">
       </div>
       <div class="field">
@@ -528,56 +706,512 @@ input:checked + .poe-check::after, .poe-check.on::after {
     <div id="poe-download-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
   </section>
 
+  <!-- Checklist de Finalização (Ata de Reunião) -->
+  <section id="tab-ata" class="tab-panel" hidden>
+    <h1>✅ Checklist de Finalização</h1>
+    <p class="text-muted page-lede">Preenche a Ata de Reunião de Acompanhamento de Projeto — fiel ao modelo em Excel — e gera o PDF pronto para assinatura.</p>
+
+    <div class="field">
+      <label for="ata-razao-social">Razão social do cliente <span class="required-mark" title="Necessário para salvar automaticamente">*</span></label>
+      <input id="ata-razao-social" class="input" type="text" placeholder="Ex.: Cliente Teste LTDA">
+    </div>
+    <div class="field" style="margin-top:var(--space-3);max-width:320px;">
+      <label for="ata-cnpj">CNPJ</label>
+      <input id="ata-cnpj" class="input" type="text">
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Cabeçalho / identificação do documento</h3>
+    <hr class="hr">
+    <div class="poe-field-grid">
+      <div class="field">
+        <label for="ata-company">Nome da empresa (parceiro) no cabeçalho</label>
+        <input id="ata-company" class="input" type="text" placeholder="Ex.: BLUEPARTNER">
+      </div>
+      <div class="field">
+        <label for="ata-company-sub">Subtítulo do cabeçalho</label>
+        <input id="ata-company-sub" class="input" type="text" placeholder="Ex.: Microsoft Partner Ecosystem">
+      </div>
+      <div class="field">
+        <label for="ata-numero">Ata Nº</label>
+        <input id="ata-numero" class="input" type="text" placeholder="Ex.: 01">
+      </div>
+      <div class="field">
+        <label for="ata-ano">Ano</label>
+        <input id="ata-ano" class="input" type="text" placeholder="Ex.: 2026">
+      </div>
+      <div class="field">
+        <label for="ata-versao">Versão</label>
+        <input id="ata-versao" class="input" type="text" placeholder="Ex.: 01">
+      </div>
+      <div class="field">
+        <label for="ata-revisao">Revisão</label>
+        <input id="ata-revisao" class="input" type="text" placeholder="Opcional">
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">1. Informações da reunião</h3>
+    <hr class="hr">
+    <div class="poe-field-grid">
+      <div class="field">
+        <label for="ata-data-reuniao">Data da reunião</label>
+        <input id="ata-data-reuniao" class="input" type="date">
+      </div>
+      <div class="field">
+        <label for="ata-hora-inicio">Hora início</label>
+        <input id="ata-hora-inicio" class="input" type="time">
+      </div>
+      <div class="field">
+        <label for="ata-hora-termino">Hora término</label>
+        <input id="ata-hora-termino" class="input" type="time">
+      </div>
+      <div class="field">
+        <label for="ata-local">Local/Plataforma</label>
+        <select id="ata-local" class="input"></select>
+      </div>
+      <div class="field">
+        <label for="ata-numero-reuniao">Nº reunião</label>
+        <input id="ata-numero-reuniao" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-facilitador">Facilitador</label>
+        <select id="ata-facilitador" class="input"></select>
+      </div>
+      <div class="field">
+        <label for="ata-secretario">Secretário(a)</label>
+        <select id="ata-secretario" class="input"></select>
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">2. Identificação do cliente/parceiro</h3>
+    <hr class="hr">
+    <p class="text-muted" style="font-size:13px;">Razão social e CNPJ ficam no topo da página.</p>
+    <div class="poe-field-grid">
+      <div class="field">
+        <label for="ata-contato">Contato principal</label>
+        <input id="ata-contato" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-cargo-contato">Cargo</label>
+        <input id="ata-cargo-contato" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-email">E-mail</label>
+        <input id="ata-email" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-telefone">Telefone</label>
+        <input id="ata-telefone" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-projeto-id">Projeto/MAICPP ID</label>
+        <input id="ata-projeto-id" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-segmento">Segmento</label>
+        <input id="ata-segmento" class="input" type="text">
+      </div>
+    </div>
+
+    <div id="ata-config-head" class="poe-collapsible-head">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+      <h3 style="margin:0;">⚙️ Configuração — serviços, tecnologias e nível de benefícios</h3>
+    </div>
+    <div id="ata-config-body" hidden>
+      <p class="text-muted" style="font-size:13px;">Marque o que se aplica a este projeto — os campos "Serviços", "Tecnologias MS" e "Nível Benefícios" do documento são montados sozinhos a partir daqui, igual à planilha original (essa área não entra no PDF).</p>
+      <div class="ata-config-panel">
+        <div class="ata-config-groups">
+          <div class="ata-config-group">
+            <h4>Serviço</h4>
+            <div id="ata-services-list"></div>
+          </div>
+          <div class="ata-config-group">
+            <h4>Tecnologia</h4>
+            <div id="ata-technologies-list"></div>
+          </div>
+          <div class="ata-config-group">
+            <h4>Nível benefícios</h4>
+            <div id="ata-levels-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">3. Objetivo da reunião</h3>
+    <hr class="hr">
+    <div class="field">
+      <label for="ata-objetivo">Descreva o objetivo</label>
+      <textarea id="ata-objetivo" class="input" rows="4"></textarea>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">4. Histórico de alterações/atualizações do projeto</h3>
+    <hr class="hr">
+    <div id="ata-historico-table" class="table-scroll"></div>
+    <button id="ata-historico-add-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">+ Adicionar linha</button>
+
+    <h3 style="margin-top:var(--space-6);">5. Próximas ações/pendências para ciência do cliente</h3>
+    <hr class="hr">
+    <div id="ata-acoes-table" class="table-scroll"></div>
+    <button id="ata-acoes-add-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">+ Adicionar linha</button>
+
+    <h3 style="margin-top:var(--space-6);">6. Participantes e assinaturas</h3>
+    <hr class="hr">
+    <div id="ata-participantes-table" class="table-scroll"></div>
+    <button id="ata-participantes-add-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">+ Adicionar linha</button>
+
+    <h3 style="margin-top:var(--space-6);">Aprovação do documento</h3>
+    <hr class="hr">
+    <div class="poe-field-grid">
+      <div class="field">
+        <label for="ata-aprov-parceiro-nome">Nome do responsável (parceiro)</label>
+        <select id="ata-aprov-parceiro-nome" class="input"></select>
+      </div>
+      <div class="field">
+        <label for="ata-aprov-parceiro-cargo">Cargo (parceiro)</label>
+        <input id="ata-aprov-parceiro-cargo" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-aprov-parceiro-data">Data (parceiro)</label>
+        <input id="ata-aprov-parceiro-data" class="input" type="date">
+      </div>
+      <div class="field">
+        <label for="ata-aprov-cliente-nome">Nome do responsável (cliente)</label>
+        <input id="ata-aprov-cliente-nome" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-aprov-cliente-cargo">Cargo (cliente)</label>
+        <input id="ata-aprov-cliente-cargo" class="input" type="text">
+      </div>
+      <div class="field">
+        <label for="ata-aprov-cliente-data">Data (cliente)</label>
+        <input id="ata-aprov-cliente-data" class="input" type="date">
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Pré-visualização do documento</h3>
+    <hr class="hr">
+    <div id="ata-doc-scroller" class="ata-doc-scroller">
+      <div id="ata-doc" class="ata-doc"></div>
+    </div>
+
+    <div class="poe-actions">
+      <span id="ata-save-status" class="save-status"><span class="dot"></span><span id="ata-save-status-text">—</span></span>
+      <button id="ata-download-btn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        Baixar PDF
+      </button>
+    </div>
+    <div id="ata-download-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+  </section>
+
+
+  <!-- Consulta de Tenant ID -->
+  <section id="tab-tenant" class="tab-panel" hidden>
+    <h1>🌐 Consulta de Tenant ID</h1>
+    <p class="text-muted page-lede">Cole o resultado bruto do tenantidfinder.com (ou do whatismytenantid.com, um domínio por vez) — a tabela colorida, a legenda e as estatísticas são montadas sozinhas, do mesmo jeito que o Copilot faz na sua planilha hoje.</p>
+
+    <div class="quick-links">
+      <a class="link-btn" href="https://tenantidfinder.com/" target="_blank" rel="noopener">🌐 Abrir tenantidfinder.com (em massa)</a>
+      <a class="link-btn" href="https://www.whatismytenantid.com/" target="_blank" rel="noopener">🔎 Abrir whatismytenantid.com (1 por 1)</a>
+      <button id="tenant-copy-domains-btn" type="button" class="link-btn" style="cursor:pointer;">📋 Copiar lista de domínios desta tabela</button>
+    </div>
+
+    <div class="field">
+      <label for="tenant-report-name">Nome do relatório/cliente (para salvar e nomear a planilha) <span class="required-mark" title="Necessário para salvar automaticamente">*</span></label>
+      <input id="tenant-report-name" class="input" type="text" placeholder="Ex.: ConquestOne">
+    </div>
+
+    <div class="field" style="margin-top:var(--space-3);">
+      <label for="tenant-paste-box">Colar resultado bruto aqui</label>
+      <textarea id="tenant-paste-box" class="input paste-box" rows="8" placeholder="Cole exatamente como o site entrega, um domínio atrás do outro:
+
+dominio.com
+Tenant ID: 5f31ac1d-7d8d-4dc2-9dd7-632130f49cef
+
+Email Configuration
+Autodiscover:
+Office 365
+
+MX:
+0 dominio-com.mail.protection.outlook.com.
+SPF:
+&quot;v=spf1 ...&quot;
+DMARC:
+&quot;v=DMARC1; p=quarantine; ...&quot;
+
+próximodominio.com.br
+Tenant ID: ...
+
+(também aceita uma tabela colada com colunas separadas por tab, se você exportar em CSV)"></textarea>
+    </div>
+    <button id="tenant-process-btn" class="btn btn-primary btn-sm" style="margin-top:var(--space-2);">Processar e adicionar à tabela</button>
+    <div id="tenant-paste-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+
+    <h3 style="margin-top:var(--space-6);">📊 Legenda de status</h3>
+    <hr class="hr">
+    <div id="tenant-legend"></div>
+
+    <h3 style="margin-top:var(--space-6);">📈 Resumo estatístico</h3>
+    <hr class="hr">
+    <div class="stat-row" id="tenant-stats"></div>
+
+    <h3 style="margin-top:var(--space-6);">Domínios — preencha Licenças/Workloads depois de checar tenant por tenant</h3>
+    <hr class="hr">
+    <div id="tenant-table" class="table-scroll"></div>
+    <button id="tenant-add-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">+ Adicionar linha manualmente</button>
+
+    <div class="poe-actions">
+      <span id="tenant-save-status" class="save-status"><span class="dot"></span><span id="tenant-save-status-text">—</span></span>
+      <button id="tenant-download-btn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        Baixar planilha
+      </button>
+    </div>
+    <div id="tenant-download-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+  </section>
+
   <!-- Documentos salvos -->
   <section id="tab-salvos" class="tab-panel" hidden>
-    <h1>Documentos salvos</h1>
-    <p class="text-muted page-lede">CPORs (e-mail) e Engagement POE são salvos automaticamente por empresa enquanto você edita. Abra para continuar de onde parou.</p>
-    <div id="saved-doc-list" class="saved-doc-list"></div>
-    <div id="saved-doc-empty" class="saved-docs-empty text-muted">Nenhum documento salvo ainda.</div>
+    <h1>📁 Documentos salvos</h1>
+    <p class="text-muted page-lede">Tudo que você monta nas outras abas é salvo sozinho por empresa/cliente enquanto edita — aqui embaixo, organizado por tipo. Abra para continuar de onde parou.</p>
+
+    <div id="saved-overview" class="saved-overview"></div>
+    <div id="saved-sections"></div>
+  </section>
+
+  <!-- Portal / Links úteis -->
+  <section id="tab-links" class="tab-panel">
+    <div class="portal-hero">
+      <h2>🏢 Portal Bluepartner — Consultoria MAICPP</h2>
+      <p>Os acessos e ferramentas do dia a dia, tudo num lugar só.</p>
+    </div>
+
+    <div class="portal-group">
+      <div class="portal-group-title"><h3 style="margin:0;">📚 Wiki &amp; Aprendizado</h3></div>
+      <div class="portal-grid">
+        <a class="portal-tile" href="https://bluepartnerit.sharepoint.com/:o:/s/BluePartner-ConsultoriaMAICPP451/IgBYfgMUk2VyR6qh-emW-YS-AbFGI0lhA30EnaISf0fKHCg?e=MLqMnl" target="_blank" rel="noopener">
+          <span class="icon">📖</span><span class="title">Wiki da Consultoria</span><span class="desc">Base de conhecimento MAICPP (OneNote)</span>
+        </a>
+        <a class="portal-tile" href="https://learn.microsoft.com/pt-br/" target="_blank" rel="noopener">
+          <span class="icon">🎓</span><span class="title">Microsoft Learn</span><span class="desc">Trilhas, certificações e agendamento de provas</span>
+        </a>
+        <a class="portal-tile" href="https://learn.bluepartner.com.br/dashboard_students" target="_blank" rel="noopener">
+          <span class="icon">🏫</span><span class="title">Learn Bluepartner</span><span class="desc">Treinamentos internos</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="portal-group">
+      <div class="portal-group-title"><h3 style="margin:0;">🔐 Acessos</h3></div>
+      <div class="portal-grid">
+        <a class="portal-tile sensitive" href="https://vault.bitwarden.com/" target="_blank" rel="noopener">
+          <span class="icon">🔑</span><span class="title">Bitwarden</span><span class="desc">Cofre de senhas da equipe</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="portal-group">
+      <div class="portal-group-title"><h3 style="margin:0;">📊 Relatórios &amp; Suporte</h3></div>
+      <div class="portal-grid">
+        <a class="portal-tile" href="https://app.powerbi.com/groups/me/reports/c5bebbe6-ded6-4cc9-8c28-90b8c9438917/d4771b3f3aba374285c7?language=pt-BR&experience=power-bi" target="_blank" rel="noopener">
+          <span class="icon">📈</span><span class="title">Power BI — Revendas</span><span class="desc">Dashboard de revendas</span>
+        </a>
+        <a class="portal-tile" href="https://app.tiflux.com/v/tickets" target="_blank" rel="noopener">
+          <span class="icon">🎫</span><span class="title">Tiflux — Tickets</span><span class="desc">Abertura e acompanhamento de chamados</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="portal-group">
+      <div class="portal-group-title"><h3 style="margin:0;">📋 Projetos (Listas SharePoint)</h3></div>
+      <div class="portal-grid">
+        <a class="portal-tile" href="https://bluepartnerit-my.sharepoint.com/personal/bruno_tavares_bluepartner_com_br/Lists/Consultoria%20MAICPP/AllItems.aspx?viewid=fd529fe8-a473-42c2-9e72-947a48f2ad3d&env=WebViewList" target="_blank" rel="noopener">
+          <span class="icon">🗂️</span><span class="title">Projetos MAICPP</span><span class="desc">Lista de acompanhamento de projetos MAICPP</span>
+        </a>
+        <a class="portal-tile" href="https://bluepartnerit-my.sharepoint.com/personal/bruno_tavares_bluepartner_com_br/Lists/Projetos%20Consultoria/AllItems.aspx?env=WebViewList" target="_blank" rel="noopener">
+          <span class="icon">🗂️</span><span class="title">Projetos Consultoria</span><span class="desc">Lista de acompanhamento de projetos de consultoria</span>
+        </a>
+      </div>
+    </div>
   </section>
 
   <!-- Configurações -->
   <section id="tab-config" class="tab-panel" hidden>
-    <h1>Configurações</h1>
+    <h1>⚙️ Configurações</h1>
+    <p class="text-muted page-lede">Ajustes que valem para o app inteiro — organizados por categoria, à esquerda.</p>
 
-    <h3>Aparência</h3>
-    <hr class="hr">
-    <p class="text-muted" style="font-size:13px;">Vale só para este app — não muda o tema do site onde ele está hospedado.</p>
-    <div id="theme-switch" class="seg">
-      <label class="seg-opt"><input type="radio" name="theme" value="light"><span>Claro</span></label>
-      <label class="seg-opt"><input type="radio" name="theme" value="dark"><span>Escuro</span></label>
-      <label class="seg-opt"><input type="radio" name="theme" value="system"><span>Sistema</span></label>
-    </div>
+    <div class="config-layout">
+      <nav class="config-nav" id="config-nav">
+        <button type="button" class="config-nav-btn active" data-config-section="aparencia">🎨 Aparência</button>
+        <button type="button" class="config-nav-btn" data-config-section="comportamento">🏠 Comportamento</button>
+        <button type="button" class="config-nav-btn" data-config-section="equipe">👥 Equipe da consultoria</button>
+        <button type="button" class="config-nav-btn" data-config-section="cpor">📧 Padrões do CPOR</button>
+        <button type="button" class="config-nav-btn" data-config-section="poe">📄 Padrões do Engagement POE</button>
+        <button type="button" class="config-nav-btn" data-config-section="checklist">✅ Padrões do Checklist</button>
+        <button type="button" class="config-nav-btn" data-config-section="seguranca">🔒 Segurança</button>
+        <button type="button" class="config-nav-btn" data-config-section="backup">💾 Backup</button>
+      </nav>
 
-    <h3 style="margin-top:var(--space-6);">Padrões do Engagement POE</h3>
-    <hr class="hr">
-    <p class="text-muted" style="font-size:13px;">Preenche automaticamente todo novo POE — não altera os que já foram salvos.</p>
-    <div class="poe-field-grid">
-      <div class="field">
-        <label for="default-partner-input">Empresa parceira padrão</label>
-        <input id="default-partner-input" class="input" type="text" placeholder="Ex.: Selbetti">
+      <div class="config-content">
+        <div id="config-section-aparencia" class="config-section">
+          <h3>🎨 Aparência</h3>
+          <p class="text-muted" style="font-size:13px;">Vale só para este app — não muda o tema do site onde ele está hospedado.</p>
+          <div id="theme-switch" class="seg">
+            <label class="seg-opt"><input type="radio" name="theme" value="light"><span>Claro</span></label>
+            <label class="seg-opt"><input type="radio" name="theme" value="dark"><span>Escuro</span></label>
+            <label class="seg-opt"><input type="radio" name="theme" value="system"><span>Sistema</span></label>
+          </div>
+
+          <h4 style="margin-top:var(--space-6);">Cor de destaque</h4>
+          <div class="field" style="max-width:120px;">
+            <input id="accent-color-input" type="color" class="input" style="height:40px;padding:2px;">
+          </div>
+
+          <h4 style="margin-top:var(--space-6);">Tamanho da fonte</h4>
+          <div id="font-size-switch" class="seg">
+            <label class="seg-opt"><input type="radio" name="fontSize" value="small"><span>Pequena</span></label>
+            <label class="seg-opt"><input type="radio" name="fontSize" value="normal"><span>Padrão</span></label>
+            <label class="seg-opt"><input type="radio" name="fontSize" value="large"><span>Grande</span></label>
+          </div>
+
+          <h4 style="margin-top:var(--space-6);">Densidade das tabelas</h4>
+          <p class="text-muted" style="font-size:13px;">Afeta as tabelas do Checklist e da Consulta de Tenant ID.</p>
+          <div id="table-density-switch" class="seg">
+            <label class="seg-opt"><input type="radio" name="tableDensity" value="comfortable"><span>Confortável</span></label>
+            <label class="seg-opt"><input type="radio" name="tableDensity" value="compact"><span>Compacta</span></label>
+          </div>
+
+          <label class="checkbox" style="margin-top:var(--space-6);margin-bottom:0;">
+            <input type="checkbox" id="show-help-text-input">
+            <span class="box"></span>
+            <span>Mostrar os textos de ajuda abaixo do título de cada aba</span>
+          </label>
+        </div>
+
+        <div id="config-section-comportamento" class="config-section" hidden>
+          <h3>🏠 Comportamento</h3>
+          <div class="field">
+            <label for="default-tab-input">Aba ao abrir o app</label>
+            <select id="default-tab-input" class="input">
+              <option value="links">Portal / Links</option>
+              <option value="criar-cpor">Criar CPOR</option>
+              <option value="engagement-poe">Engagement POE</option>
+              <option value="ata">Checklist de Finalização</option>
+              <option value="tenant">Tenant ID</option>
+              <option value="salvos">Documentos salvos</option>
+            </select>
+          </div>
+
+          <h4 style="margin-top:var(--space-6);">Documentos salvos</h4>
+          <div class="poe-field-grid">
+            <div class="field">
+              <label for="saved-sort-input">Ordenar por</label>
+              <select id="saved-sort-input" class="input">
+                <option value="recent">Mais recente primeiro</option>
+                <option value="name">Nome (A-Z)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="saved-page-size-input">Itens exibidos por categoria</label>
+              <select id="saved-page-size-input" class="input">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="0">Todos</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="checkbox" style="margin-top:var(--space-6);margin-bottom:0;">
+            <input type="checkbox" id="warn-unsaved-exit-input">
+            <span class="box"></span>
+            <span>Avisar antes de sair ou recarregar a página</span>
+          </label>
+        </div>
+
+        <div id="config-section-equipe" class="config-section" hidden>
+          <h3>👥 Equipe da consultoria</h3>
+          <p class="text-muted" style="font-size:13px;">Esses nomes são as opções de Facilitador/Secretário(a)/Responsável no Checklist de Finalização e de assinante na Aprovação do documento.</p>
+          <div id="team-members-list" class="team-members-list"></div>
+          <button type="button" id="team-member-add-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">+ Adicionar integrante</button>
+        </div>
+
+        <div id="config-section-cpor" class="config-section" hidden>
+          <h3>📧 Padrões do CPOR</h3>
+          <p class="text-muted" style="font-size:13px;">Use <code>{{empresa}}</code> onde o nome da empresa deve entrar.</p>
+          <div class="field">
+            <label for="intro-template-input">Texto de abertura</label>
+            <textarea id="intro-template-input" class="input" rows="6"></textarea>
+          </div>
+        </div>
+
+        <div id="config-section-poe" class="config-section" hidden>
+          <h3>📄 Padrões do Engagement POE</h3>
+          <p class="text-muted" style="font-size:13px;">Preenche automaticamente todo novo POE — não altera os que já foram salvos.</p>
+          <div class="poe-field-grid">
+            <div class="field">
+              <label for="default-partner-input">Empresa parceira padrão</label>
+              <input id="default-partner-input" class="input" type="text" placeholder="Ex.: Selbetti">
+            </div>
+            <div class="field">
+              <label for="default-role-input">Cargo padrão do responsável</label>
+              <input id="default-role-input" class="input" type="text" placeholder="Ex.: GERENTE">
+            </div>
+          </div>
+        </div>
+
+        <div id="config-section-checklist" class="config-section" hidden>
+          <h3>✅ Padrões do Checklist de Finalização</h3>
+          <p class="text-muted" style="font-size:13px;">Preenche automaticamente todo novo checklist — não altera os que já foram salvos.</p>
+          <div class="poe-field-grid">
+            <div class="field">
+              <label for="default-checklist-location-input">Local/Plataforma padrão</label>
+              <input id="default-checklist-location-input" class="input" type="text" placeholder="Ex.: Teams">
+            </div>
+            <div class="field">
+              <label for="default-checklist-segment-input">Segmento padrão do cliente</label>
+              <input id="default-checklist-segment-input" class="input" type="text" placeholder="Ex.: Consultoria">
+            </div>
+            <div class="field">
+              <label for="default-checklist-role-input">Cargo padrão do contato do cliente</label>
+              <input id="default-checklist-role-input" class="input" type="text" placeholder="Ex.: Técnico">
+            </div>
+            <div class="field">
+              <label for="default-checklist-approver-role-input">Cargo padrão do aprovador (parceiro)</label>
+              <input id="default-checklist-approver-role-input" class="input" type="text" placeholder="Ex.: Coordenador da Consultoria">
+            </div>
+            <div class="field">
+              <label for="default-checklist-presente-input">"Presente" padrão dos participantes</label>
+              <select id="default-checklist-presente-input" class="input">
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+                <option value="Online">Online</option>
+                <option value="Justificado">Justificado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="config-section-seguranca" class="config-section" hidden>
+          <h3>🔒 Segurança</h3>
+          <label class="checkbox" style="margin-bottom:0;">
+            <input type="checkbox" id="confirm-delete-input">
+            <span class="box"></span>
+            <span>Pedir confirmação antes de excluir um documento salvo</span>
+          </label>
+        </div>
+
+        <div id="config-section-backup" class="config-section" hidden>
+          <h3>💾 Backup das configurações</h3>
+          <p class="text-muted" style="font-size:13px;">Exporta tudo desta página de Configurações (menos a equipe, que já vai junto) para um arquivo — útil para levar suas preferências para outro navegador ou guardar uma cópia.</p>
+          <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;">
+            <button type="button" id="export-config-btn" class="btn btn-secondary btn-sm">⬇️ Exportar configurações</button>
+            <button type="button" id="import-config-btn" class="btn btn-secondary btn-sm">⬆️ Importar configurações</button>
+            <input type="file" id="import-config-file" accept="application/json" style="display:none;">
+          </div>
+          <div id="backup-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+        </div>
       </div>
-      <div class="field">
-        <label for="default-role-input">Cargo padrão do responsável</label>
-        <input id="default-role-input" class="input" type="text" placeholder="Ex.: GERENTE">
-      </div>
     </div>
-
-    <h3 style="margin-top:var(--space-6);">Mensagem padrão do CPOR</h3>
-    <hr class="hr">
-    <p class="text-muted" style="font-size:13px;">Use <code>{{empresa}}</code> onde o nome da empresa deve entrar.</p>
-    <div class="field">
-      <label for="intro-template-input">Texto de abertura</label>
-      <textarea id="intro-template-input" class="input" rows="6"></textarea>
-    </div>
-
-    <h3 style="margin-top:var(--space-6);">Segurança</h3>
-    <hr class="hr">
-    <label class="checkbox" style="margin-bottom:0;">
-      <input type="checkbox" id="confirm-delete-input">
-      <span class="box"></span>
-      <span>Pedir confirmação antes de excluir um documento salvo</span>
-    </label>
 
     <button id="save-config-btn" class="btn btn-primary" style="margin-top:var(--space-6);">Salvar configurações</button>
     <div id="config-note" class="save-note" style="margin-top:var(--space-2);font-size:12px;" hidden></div>
@@ -587,6 +1221,7 @@ input:checked + .poe-check::after, .poe-check.on::after {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script>
 (() => {
   'use strict';
@@ -622,7 +1257,7 @@ input:checked + .poe-check::after, .poe-check.on::after {
   }
 
   const state = {
-    activeTab: 'criar-cpor',
+    activeTab: 'links',
     docId: null,
     empresa: '',
     sections: Object.fromEntries(SECTIONS.map(s => [s.key, []])),
@@ -631,7 +1266,20 @@ input:checked + .poe-check::after, .poe-check.on::after {
     theme: 'light',
     defaultPartner: '',
     defaultRole: '',
-    confirmDelete: false
+    confirmDelete: false,
+    defaultChecklistLocation: '',
+    defaultChecklistSegment: '',
+    defaultChecklistRole: '',
+    defaultChecklistApproverRole: '',
+    defaultChecklistPresente: 'Sim',
+    accentColor: '#ec3013',
+    fontSize: 'normal',
+    tableDensity: 'comfortable',
+    showHelpText: true,
+    defaultTab: 'links',
+    savedSort: 'recent',
+    savedPageSize: 25,
+    warnUnsavedExit: false
   };
 
   // ————————————————————————————————————————————————————————————
@@ -681,8 +1329,8 @@ input:checked + .poe-check::after, .poe-check.on::after {
   const copyBtnEl = document.getElementById('copy-btn');
   const copyNoteEl = document.getElementById('copy-note');
 
-  const savedDocListEl = document.getElementById('saved-doc-list');
-  const savedDocEmptyEl = document.getElementById('saved-doc-empty');
+  const savedOverviewEl = document.getElementById('saved-overview');
+  const savedSectionsEl = document.getElementById('saved-sections');
 
   const themeSwitchEl = document.getElementById('theme-switch');
   const defaultPartnerInputEl = document.getElementById('default-partner-input');
@@ -691,6 +1339,57 @@ input:checked + .poe-check::after, .poe-check.on::after {
   const introTemplateInputEl = document.getElementById('intro-template-input');
   const saveConfigBtnEl = document.getElementById('save-config-btn');
   const configNoteEl = document.getElementById('config-note');
+  const configNavEl = document.getElementById('config-nav');
+  const teamMembersListEl = document.getElementById('team-members-list');
+  const teamMemberAddBtnEl = document.getElementById('team-member-add-btn');
+  const defaultChecklistLocationInputEl = document.getElementById('default-checklist-location-input');
+  const defaultChecklistSegmentInputEl = document.getElementById('default-checklist-segment-input');
+  const defaultChecklistRoleInputEl = document.getElementById('default-checklist-role-input');
+  const defaultChecklistApproverRoleInputEl = document.getElementById('default-checklist-approver-role-input');
+  const defaultChecklistPresenteInputEl = document.getElementById('default-checklist-presente-input');
+  const accentColorInputEl = document.getElementById('accent-color-input');
+  const fontSizeSwitchEl = document.getElementById('font-size-switch');
+  const tableDensitySwitchEl = document.getElementById('table-density-switch');
+  const showHelpTextInputEl = document.getElementById('show-help-text-input');
+  const defaultTabInputEl = document.getElementById('default-tab-input');
+  const savedSortInputEl = document.getElementById('saved-sort-input');
+  const savedPageSizeInputEl = document.getElementById('saved-page-size-input');
+  const warnUnsavedExitInputEl = document.getElementById('warn-unsaved-exit-input');
+  const exportConfigBtnEl = document.getElementById('export-config-btn');
+  const importConfigBtnEl = document.getElementById('import-config-btn');
+  const importConfigFileEl = document.getElementById('import-config-file');
+  const backupNoteEl = document.getElementById('backup-note');
+
+  function applyAccentColor(hex) {
+    document.documentElement.style.setProperty('--color-accent', hex);
+  }
+  function applyFontSize(size) {
+    document.body.classList.remove('font-size-small', 'font-size-large');
+    if (size === 'small') document.body.classList.add('font-size-small');
+    else if (size === 'large') document.body.classList.add('font-size-large');
+  }
+  function applyTableDensity(density) {
+    document.body.classList.toggle('table-compact', density === 'compact');
+  }
+  function applyShowHelpText(show) {
+    document.body.classList.toggle('hide-lede', !show);
+  }
+  let warnUnsavedExitHandler = null;
+  function applyWarnUnsavedExit(on) {
+    if (warnUnsavedExitHandler) { window.removeEventListener('beforeunload', warnUnsavedExitHandler); warnUnsavedExitHandler = null; }
+    if (on) {
+      warnUnsavedExitHandler = (e) => { e.preventDefault(); e.returnValue = ''; };
+      window.addEventListener('beforeunload', warnUnsavedExitHandler);
+    }
+  }
+
+  configNavEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.config-nav-btn');
+    if (!btn) return;
+    const key = btn.dataset.configSection;
+    configNavEl.querySelectorAll('.config-nav-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.config-section').forEach(s => { s.hidden = s.id !== 'config-section-' + key; });
+  });
 
   // ————————————————————————————————————————————————————————————
   // Tabs
@@ -698,7 +1397,7 @@ input:checked + .poe-check::after, .poe-check.on::after {
   function setActiveTab(id) {
     state.activeTab = id;
     tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === id));
-    ['criar-cpor', 'engagement-poe', 'salvos', 'config'].forEach(t => {
+    ['links', 'criar-cpor', 'engagement-poe', 'ata', 'tenant', 'salvos', 'config'].forEach(t => {
       document.getElementById('tab-' + t).hidden = t !== id;
     });
   }
@@ -1179,53 +1878,156 @@ input:checked + .poe-check::after, .poe-check.on::after {
   }
 
   // ————————————————————————————————————————————————————————————
-  // Saved documents list (shared between CPOR e-mails and Engagement POE)
+  // Saved documents — one category at a time, not one long scroll
   // ————————————————————————————————————————————————————————————
-  function renderSavedDocs() {
-    savedDocListEl.innerHTML = '';
-    savedDocEmptyEl.hidden = state.savedDocs.length !== 0;
-    state.savedDocs.forEach(doc => {
-      const row = document.createElement('div');
-      row.className = 'saved-doc-row';
-      const typeTag = document.createElement('span');
-      typeTag.className = 'tag' + (doc.type === 'poe' ? ' tag-accent' : '');
-      typeTag.textContent = doc.type === 'poe' ? 'Engagement POE' : 'CPOR';
-      const label = document.createElement('span');
-      label.innerHTML = `<b>${doc.name}</b>`;
-      row.append(typeTag, label);
-      const dt = doc.updatedAt ? new Date(doc.updatedAt) : null;
-      if (dt && !isNaN(dt)) {
-        const time = document.createElement('time');
-        time.className = 'text-muted';
-        time.textContent = dt.toLocaleString('pt-BR');
-        row.appendChild(time);
-      }
-      const actions = document.createElement('div');
-      actions.className = 'actions';
+  // Sub-tabbed by type (click a card to switch) instead of stacking every
+  // category on one page: with thousands of CPORs, scrolling past all of
+  // them to reach Tenant ID would be unworkable. Elegibilidade isn't part
+  // of this at all — it's a single continuous log that lives and saves in
+  // its own tab, not a per-client document, so it gets a pointer note
+  // instead of a category. "Outros" only appears if something doesn't
+  // match a known type (e.g. leftover data from an earlier version) —
+  // it's never silently folded into CPOR, so nothing looks miscategorized.
+  const SAVED_SECTIONS = [
+    { type: 'cpor', icon: '📧', title: 'CPOR (e-mail)', empty: 'Nenhum CPOR salvo ainda.' },
+    { type: 'poe', icon: '📄', title: 'Engagement POE', empty: 'Nenhum Engagement POE salvo ainda.' },
+    { type: 'ata', icon: '✅', title: 'Checklist de Finalização', empty: 'Nenhum checklist salvo ainda.' },
+    { type: 'tenant', icon: '🌐', title: 'Consultas — Tenant ID', empty: 'Nenhum relatório de Tenant ID salvo ainda.' },
+    { type: 'outros', icon: '📦', title: 'Outros', empty: 'Nada por aqui.' }
+  ];
+  state.savedActiveType = 'cpor';
+  state.savedSearch = '';
 
-      if (doc.type === 'poe') {
-        const downloadBtn = document.createElement('button');
-        downloadBtn.type = 'button'; downloadBtn.className = 'btn btn-primary btn-sm'; downloadBtn.textContent = 'Baixar PDF';
-        downloadBtn.addEventListener('click', () => downloadSavedPoePdf(doc.id, downloadBtn));
-        actions.appendChild(downloadBtn);
-      }
+  function buildSavedDocRow(doc) {
+    const row = document.createElement('div');
+    row.className = 'saved-doc-row';
+    const label = document.createElement('span');
+    label.innerHTML = `<b>${doc.name}</b>`;
+    row.append(label);
+    const dt = doc.updatedAt ? new Date(doc.updatedAt) : null;
+    if (dt && !isNaN(dt)) {
+      const time = document.createElement('time');
+      time.className = 'text-muted';
+      time.textContent = dt.toLocaleString('pt-BR');
+      row.appendChild(time);
+    }
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    if (doc.type === 'poe' || doc.type === 'ata' || doc.type === 'tenant') {
+      const downloadBtn = document.createElement('button');
+      downloadBtn.type = 'button'; downloadBtn.className = 'btn btn-primary btn-sm';
+      downloadBtn.textContent = doc.type === 'tenant' ? 'Baixar planilha' : 'Baixar PDF';
+      downloadBtn.addEventListener('click', () => {
+        if (doc.type === 'poe') downloadSavedPoePdf(doc.id, downloadBtn);
+        else if (doc.type === 'ata') downloadSavedAtaPdf(doc.id, downloadBtn);
+        else downloadSavedTenantXlsx(doc.id, downloadBtn);
+      });
+      actions.appendChild(downloadBtn);
+    }
+    // Anything not a recognized type (e.g. leftover data from an earlier
+    // version of the app) has nowhere to open into — never fall through
+    // to the CPOR loader, which would silently mis-open it there.
+    const isRecognized = !doc.type || SAVED_KNOWN_TYPES.includes(doc.type);
+    if (isRecognized) {
       const openBtn = document.createElement('button');
       openBtn.type = 'button'; openBtn.className = 'btn btn-secondary btn-sm'; openBtn.textContent = 'Abrir';
-      openBtn.addEventListener('click', () => doc.type === 'poe' ? loadPoeDocument(doc.id) : loadDocument(doc.id));
-      actions.appendChild(openBtn);
-
-      const delBtn = document.createElement('button');
-      delBtn.type = 'button'; delBtn.className = 'btn btn-secondary btn-sm'; delBtn.textContent = 'Excluir';
-      delBtn.addEventListener('click', () => {
-        if (!state.confirmDelete || delBtn.dataset.confirming) { deleteDocument(doc.id); return; }
-        delBtn.dataset.confirming = '1'; delBtn.textContent = 'Confirmar exclusão?';
-        setTimeout(() => { delete delBtn.dataset.confirming; delBtn.textContent = 'Excluir'; }, 4000);
+      openBtn.addEventListener('click', () => {
+        if (doc.type === 'poe') loadPoeDocument(doc.id);
+        else if (doc.type === 'ata') loadAtaDocument(doc.id);
+        else if (doc.type === 'tenant') loadTenantDocument(doc.id);
+        else loadDocument(doc.id);
       });
-      actions.appendChild(delBtn);
+      actions.appendChild(openBtn);
+    }
 
-      row.appendChild(actions);
-      savedDocListEl.appendChild(row);
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button'; delBtn.className = 'btn btn-secondary btn-sm'; delBtn.textContent = 'Excluir';
+    delBtn.addEventListener('click', () => {
+      if (!state.confirmDelete || delBtn.dataset.confirming) { deleteDocument(doc.id); return; }
+      delBtn.dataset.confirming = '1'; delBtn.textContent = 'Confirmar exclusão?';
+      setTimeout(() => { delete delBtn.dataset.confirming; delBtn.textContent = 'Excluir'; }, 4000);
     });
+    actions.appendChild(delBtn);
+
+    row.appendChild(actions);
+    return row;
+  }
+
+  const SAVED_KNOWN_TYPES = ['cpor', 'poe', 'ata', 'tenant'];
+  function groupSavedDocsByType() {
+    const byType = { cpor: [], poe: [], ata: [], tenant: [], outros: [] };
+    state.savedDocs.forEach(doc => {
+      const t = doc.type;
+      const key = !t ? 'cpor' : (SAVED_KNOWN_TYPES.includes(t) ? t : 'outros');
+      byType[key].push(doc);
+    });
+    return byType;
+  }
+
+  function renderSavedDocs() {
+    const byType = groupSavedDocsByType();
+    if (!byType[state.savedActiveType] || (state.savedActiveType === 'outros' && !byType.outros.length)) {
+      state.savedActiveType = 'cpor';
+    }
+
+    savedOverviewEl.innerHTML = '';
+    SAVED_SECTIONS.forEach(sec => {
+      if (sec.type === 'outros' && !byType.outros.length) return;
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'stat-card saved-cat-card' + (sec.type === state.savedActiveType ? ' active' : '');
+      card.innerHTML = `<div class="stat-label">${sec.icon} ${sec.title}</div><div class="stat-value">${byType[sec.type].length}</div>`;
+      card.addEventListener('click', () => { state.savedActiveType = sec.type; state.savedSearch = ''; renderSavedDocs(); });
+      savedOverviewEl.appendChild(card);
+    });
+
+    const sec = SAVED_SECTIONS.find(s => s.type === state.savedActiveType);
+    const allDocs = byType[state.savedActiveType].slice();
+    if (state.savedSort === 'name') {
+      allDocs.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR'));
+    } else {
+      allDocs.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+    }
+    const query = state.savedSearch.trim().toLowerCase();
+    let docs = query ? allDocs.filter(d => (d.name || '').toLowerCase().includes(query)) : allDocs;
+    const pageSize = state.savedPageSize;
+    const truncated = pageSize && docs.length > pageSize;
+    if (truncated) docs = docs.slice(0, pageSize);
+
+    savedSectionsEl.innerHTML = '';
+    const section = document.createElement('div'); section.className = 'saved-section';
+    const head = document.createElement('div'); head.className = 'saved-section-head';
+    head.innerHTML = `<h3>${sec.icon} ${sec.title}</h3><span class="count">${allDocs.length}</span>`;
+    section.appendChild(head);
+
+    if (allDocs.length > 6) {
+      const search = document.createElement('input');
+      search.className = 'input'; search.type = 'text'; search.placeholder = 'Buscar nesta categoria por nome…';
+      search.value = state.savedSearch;
+      search.style.marginBottom = 'var(--space-3)';
+      search.addEventListener('input', () => { state.savedSearch = search.value; renderSavedDocs(); });
+      section.appendChild(search);
+    }
+
+    if (!allDocs.length) {
+      const empty = document.createElement('div'); empty.className = 'saved-section-empty'; empty.textContent = sec.empty;
+      section.appendChild(empty);
+    } else if (!docs.length) {
+      const empty = document.createElement('div'); empty.className = 'saved-section-empty';
+      empty.textContent = `Nada encontrado para "${state.savedSearch}".`;
+      section.appendChild(empty);
+    } else {
+      const list = document.createElement('div'); list.className = 'saved-doc-list';
+      docs.forEach(doc => list.appendChild(buildSavedDocRow(doc)));
+      section.appendChild(list);
+      if (truncated) {
+        const more = document.createElement('p'); more.className = 'text-muted'; more.style.fontSize = '12px'; more.style.marginTop = 'var(--space-2)';
+        more.textContent = `Mostrando ${docs.length} de ${allDocs.length} — use a busca para achar outros, ou aumente "Itens exibidos por categoria" em Configurações.`;
+        section.appendChild(more);
+      }
+    }
+    savedSectionsEl.appendChild(section);
   }
 
   function subscribeSavedDocs() {
@@ -1274,13 +2076,46 @@ input:checked + .poe-check::after, .poe-check.on::after {
     state.defaultPartner = defaultPartnerInputEl.value.trim();
     state.defaultRole = defaultRoleInputEl.value.trim();
     state.confirmDelete = confirmDeleteInputEl.checked;
+    state.defaultChecklistLocation = defaultChecklistLocationInputEl.value.trim();
+    state.defaultChecklistSegment = defaultChecklistSegmentInputEl.value.trim();
+    state.defaultChecklistRole = defaultChecklistRoleInputEl.value.trim();
+    state.defaultChecklistApproverRole = defaultChecklistApproverRoleInputEl.value.trim();
+    state.defaultChecklistPresente = defaultChecklistPresenteInputEl.value;
+    state.accentColor = accentColorInputEl.value;
+    state.fontSize = fontSizeSwitchEl.querySelector('input:checked').value;
+    state.tableDensity = tableDensitySwitchEl.querySelector('input:checked').value;
+    state.showHelpText = showHelpTextInputEl.checked;
+    state.defaultTab = defaultTabInputEl.value;
+    state.savedSort = savedSortInputEl.value;
+    state.savedPageSize = Number(savedPageSizeInputEl.value);
+    state.warnUnsavedExit = warnUnsavedExitInputEl.checked;
+    applyAccentColor(state.accentColor);
+    applyFontSize(state.fontSize);
+    applyTableDensity(state.tableDensity);
+    applyShowHelpText(state.showHelpText);
+    applyWarnUnsavedExit(state.warnUnsavedExit);
+    if (typeof renderSavedDocs === 'function') renderSavedDocs();
     configNoteEl.hidden = true;
 
     const body = {
       introTemplate: state.introTemplate,
       defaultPartner: state.defaultPartner,
       defaultRole: state.defaultRole,
-      confirmDelete: state.confirmDelete
+      confirmDelete: state.confirmDelete,
+      teamMembers: ATA_TEAM_MEMBERS.slice(),
+      defaultChecklistLocation: state.defaultChecklistLocation,
+      defaultChecklistSegment: state.defaultChecklistSegment,
+      defaultChecklistRole: state.defaultChecklistRole,
+      defaultChecklistApproverRole: state.defaultChecklistApproverRole,
+      defaultChecklistPresente: state.defaultChecklistPresente,
+      accentColor: state.accentColor,
+      fontSize: state.fontSize,
+      tableDensity: state.tableDensity,
+      showHelpText: state.showHelpText,
+      defaultTab: state.defaultTab,
+      savedSort: state.savedSort,
+      savedPageSize: state.savedPageSize,
+      warnUnsavedExit: state.warnUnsavedExit
     };
     if (!db) {
       try { localStorage.setItem('facilitadorCpor:settings', JSON.stringify(body)); } catch (e) { /* ignore */ }
@@ -1327,9 +2162,132 @@ input:checked + .poe-check::after, .poe-check.on::after {
       state.confirmDelete = data.confirmDelete;
       confirmDeleteInputEl.checked = state.confirmDelete;
     }
+    if (Array.isArray(data.teamMembers) && data.teamMembers.length) {
+      ATA_TEAM_MEMBERS.length = 0;
+      data.teamMembers.forEach(name => ATA_TEAM_MEMBERS.push(name));
+      renderTeamMembersEditor();
+      refreshTeamMemberDependents();
+    }
+    if (typeof data.defaultChecklistLocation === 'string') {
+      state.defaultChecklistLocation = data.defaultChecklistLocation;
+      defaultChecklistLocationInputEl.value = state.defaultChecklistLocation;
+      if (state.defaultChecklistLocation && !state.ata.docId && state.ata.location === 'Teams') {
+        state.ata.location = state.defaultChecklistLocation;
+        ataLocalEl.value = state.ata.location;
+      }
+    }
+    if (typeof data.defaultChecklistSegment === 'string') {
+      state.defaultChecklistSegment = data.defaultChecklistSegment;
+      defaultChecklistSegmentInputEl.value = state.defaultChecklistSegment;
+      if (state.defaultChecklistSegment && !state.ata.docId && state.ata.segment === 'Consultoria') {
+        state.ata.segment = state.defaultChecklistSegment;
+        ataSegmentoEl.value = state.ata.segment;
+      }
+    }
+    if (typeof data.defaultChecklistRole === 'string') {
+      state.defaultChecklistRole = data.defaultChecklistRole;
+      defaultChecklistRoleInputEl.value = state.defaultChecklistRole;
+      if (state.defaultChecklistRole && !state.ata.docId && state.ata.contactRole === 'Técnico') {
+        state.ata.contactRole = state.defaultChecklistRole;
+        ataCargoContatoEl.value = state.ata.contactRole;
+      }
+    }
+    if (typeof data.defaultChecklistApproverRole === 'string') {
+      state.defaultChecklistApproverRole = data.defaultChecklistApproverRole;
+      defaultChecklistApproverRoleInputEl.value = state.defaultChecklistApproverRole;
+      if (state.defaultChecklistApproverRole && !state.ata.docId && state.ata.approvalPartnerRole === 'Coordenador da Consultoria') {
+        state.ata.approvalPartnerRole = state.defaultChecklistApproverRole;
+        ataAprovParceiroCargoEl.value = state.ata.approvalPartnerRole;
+      }
+    }
+    if (typeof data.defaultChecklistPresente === 'string') {
+      state.defaultChecklistPresente = data.defaultChecklistPresente;
+      defaultChecklistPresenteInputEl.value = state.defaultChecklistPresente;
+    }
+    if (typeof data.accentColor === 'string') {
+      state.accentColor = data.accentColor;
+      accentColorInputEl.value = state.accentColor;
+      applyAccentColor(state.accentColor);
+    }
+    if (typeof data.fontSize === 'string') {
+      state.fontSize = data.fontSize;
+      const r = fontSizeSwitchEl.querySelector(`input[value="${state.fontSize}"]`);
+      if (r) r.checked = true;
+      applyFontSize(state.fontSize);
+    }
+    if (typeof data.tableDensity === 'string') {
+      state.tableDensity = data.tableDensity;
+      const r = tableDensitySwitchEl.querySelector(`input[value="${state.tableDensity}"]`);
+      if (r) r.checked = true;
+      applyTableDensity(state.tableDensity);
+    }
+    if (typeof data.showHelpText === 'boolean') {
+      state.showHelpText = data.showHelpText;
+      showHelpTextInputEl.checked = state.showHelpText;
+      applyShowHelpText(state.showHelpText);
+    }
+    if (typeof data.defaultTab === 'string') {
+      state.defaultTab = data.defaultTab;
+      defaultTabInputEl.value = state.defaultTab;
+    }
+    if (typeof data.savedSort === 'string') {
+      state.savedSort = data.savedSort;
+      savedSortInputEl.value = state.savedSort;
+    }
+    if (typeof data.savedPageSize === 'number') {
+      state.savedPageSize = data.savedPageSize;
+      savedPageSizeInputEl.value = String(state.savedPageSize);
+    }
+    if (typeof data.warnUnsavedExit === 'boolean') {
+      state.warnUnsavedExit = data.warnUnsavedExit;
+      warnUnsavedExitInputEl.checked = state.warnUnsavedExit;
+      applyWarnUnsavedExit(state.warnUnsavedExit);
+    }
     renderPreview();
     renderPoeDoc();
+    if (typeof renderAtaDoc === 'function') renderAtaDoc();
+    if (typeof renderSavedDocs === 'function') renderSavedDocs();
   }
+
+  // Equipe da consultoria — feeds the Facilitador/Secretário/Responsável/
+  // Participantes/Aprovação selects on the Checklist de Finalização.
+  // ATA_TEAM_MEMBERS (defined further down, in the Ata module) is always
+  // mutated in place here (never reassigned) so every column definition
+  // that already holds a reference to it stays in sync automatically.
+  function renderTeamMembersEditor() {
+    teamMembersListEl.innerHTML = '';
+    ATA_TEAM_MEMBERS.forEach((name, idx) => {
+      const row = document.createElement('div'); row.className = 'team-member-row';
+      const input = document.createElement('input'); input.className = 'input'; input.type = 'text'; input.value = name;
+      input.addEventListener('input', () => { ATA_TEAM_MEMBERS[idx] = input.value; });
+      input.addEventListener('blur', refreshTeamMemberDependents);
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'row-remove-btn'; btn.title = 'Remover';
+      btn.textContent = '✕';
+      if (ATA_TEAM_MEMBERS.length > 1) {
+        btn.addEventListener('click', () => { ATA_TEAM_MEMBERS.splice(idx, 1); renderTeamMembersEditor(); refreshTeamMemberDependents(); });
+      } else {
+        btn.disabled = true;
+      }
+      row.append(input, btn);
+      teamMembersListEl.appendChild(row);
+    });
+  }
+  function refreshTeamMemberDependents() {
+    populateAtaSelects();
+    [ataFacilitadorEl, ataSecretarioEl, ataAprovParceiroNomeEl].forEach(el => {
+      if (el && !ATA_TEAM_MEMBERS.includes(el.value)) el.value = ATA_TEAM_MEMBERS[0] || '';
+    });
+    renderAtaHistoricoTable();
+    renderAtaParticipantesTable();
+  }
+  teamMemberAddBtnEl.addEventListener('click', () => {
+    ATA_TEAM_MEMBERS.push('Novo integrante');
+    renderTeamMembersEditor();
+    refreshTeamMemberDependents();
+  });
+  // renderTeamMembersEditor() itself can't run until ATA_TEAM_MEMBERS
+  // exists (defined later, in the Ata module) — called from that
+  // module's own init block instead of here.
 
   function subscribeSettings() {
     try {
@@ -1355,12 +2313,65 @@ input:checked + .poe-check::after, .poe-check.on::after {
   bulkFileInputEl.addEventListener('change', (e) => { addBulkFiles(e.target.files); e.target.value = ''; });
 
   themeSwitchEl.addEventListener('change', (e) => { if (e.target.name === 'theme') applyTheme(e.target.value); });
+  accentColorInputEl.addEventListener('input', () => applyAccentColor(accentColorInputEl.value));
+  fontSizeSwitchEl.addEventListener('change', (e) => { if (e.target.name === 'fontSize') applyFontSize(e.target.value); });
+  tableDensitySwitchEl.addEventListener('change', (e) => { if (e.target.name === 'tableDensity') applyTableDensity(e.target.value); });
+  showHelpTextInputEl.addEventListener('change', () => applyShowHelpText(showHelpTextInputEl.checked));
+  savedSortInputEl.addEventListener('change', () => { state.savedSort = savedSortInputEl.value; renderSavedDocs(); });
+  savedPageSizeInputEl.addEventListener('change', () => { state.savedPageSize = Number(savedPageSizeInputEl.value); renderSavedDocs(); });
+
+  // — Backup: export/import the whole Configurações page as one file —
+  function collectConfigSnapshot() {
+    return {
+      introTemplate: introTemplateInputEl.value, defaultPartner: defaultPartnerInputEl.value,
+      defaultRole: defaultRoleInputEl.value, confirmDelete: confirmDeleteInputEl.checked,
+      teamMembers: ATA_TEAM_MEMBERS.slice(),
+      defaultChecklistLocation: defaultChecklistLocationInputEl.value, defaultChecklistSegment: defaultChecklistSegmentInputEl.value,
+      defaultChecklistRole: defaultChecklistRoleInputEl.value, defaultChecklistApproverRole: defaultChecklistApproverRoleInputEl.value,
+      defaultChecklistPresente: defaultChecklistPresenteInputEl.value,
+      accentColor: accentColorInputEl.value, fontSize: fontSizeSwitchEl.querySelector('input:checked').value,
+      tableDensity: tableDensitySwitchEl.querySelector('input:checked').value, showHelpText: showHelpTextInputEl.checked,
+      defaultTab: defaultTabInputEl.value, savedSort: savedSortInputEl.value,
+      savedPageSize: Number(savedPageSizeInputEl.value), warnUnsavedExit: warnUnsavedExitInputEl.checked
+    };
+  }
+  exportConfigBtnEl.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(collectConfigSnapshot(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'facilitador-cpor-configuracoes.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    backupNoteEl.textContent = 'Configurações exportadas.'; backupNoteEl.className = 'save-note ok'; backupNoteEl.hidden = false;
+  });
+  importConfigBtnEl.addEventListener('click', () => importConfigFileEl.click());
+  importConfigFileEl.addEventListener('change', async () => {
+    const file = importConfigFileEl.files[0];
+    importConfigFileEl.value = '';
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      applySettingsData(data);
+      await saveConfig();
+      backupNoteEl.textContent = 'Configurações importadas e salvas.'; backupNoteEl.className = 'save-note ok'; backupNoteEl.hidden = false;
+    } catch (e) {
+      backupNoteEl.textContent = 'Não foi possível ler esse arquivo — confira se é um JSON exportado daqui.'; backupNoteEl.className = 'save-note err'; backupNoteEl.hidden = false;
+    }
+  });
 
   // ————————————————————————————————————————————————————————————
   // Init
   // ————————————————————————————————————————————————————————————
   applyTheme(loadStoredTheme());
   document.querySelector(`input[name="theme"][value="${state.theme}"]`).checked = true;
+  accentColorInputEl.value = state.accentColor;
+  fontSizeSwitchEl.querySelector(`input[value="${state.fontSize}"]`).checked = true;
+  tableDensitySwitchEl.querySelector(`input[value="${state.tableDensity}"]`).checked = true;
+  showHelpTextInputEl.checked = state.showHelpText;
+  defaultTabInputEl.value = state.defaultTab;
+  savedSortInputEl.value = state.savedSort;
+  savedPageSizeInputEl.value = String(state.savedPageSize);
+  warnUnsavedExitInputEl.checked = state.warnUnsavedExit;
+  defaultChecklistPresenteInputEl.value = state.defaultChecklistPresente;
   try {
     const raw = localStorage.getItem('facilitadorCpor:settings');
     if (raw) {
@@ -1369,8 +2380,22 @@ input:checked + .poe-check::after, .poe-check.on::after {
       if (typeof saved.defaultPartner === 'string') { state.defaultPartner = saved.defaultPartner; defaultPartnerInputEl.value = saved.defaultPartner; }
       if (typeof saved.defaultRole === 'string') { state.defaultRole = saved.defaultRole; defaultRoleInputEl.value = saved.defaultRole; }
       if (typeof saved.confirmDelete === 'boolean') { state.confirmDelete = saved.confirmDelete; confirmDeleteInputEl.checked = saved.confirmDelete; }
+      if (typeof saved.accentColor === 'string') { state.accentColor = saved.accentColor; accentColorInputEl.value = saved.accentColor; applyAccentColor(saved.accentColor); }
+      if (typeof saved.fontSize === 'string') { state.fontSize = saved.fontSize; fontSizeSwitchEl.querySelector(`input[value="${saved.fontSize}"]`).checked = true; applyFontSize(saved.fontSize); }
+      if (typeof saved.tableDensity === 'string') { state.tableDensity = saved.tableDensity; tableDensitySwitchEl.querySelector(`input[value="${saved.tableDensity}"]`).checked = true; applyTableDensity(saved.tableDensity); }
+      if (typeof saved.showHelpText === 'boolean') { state.showHelpText = saved.showHelpText; showHelpTextInputEl.checked = saved.showHelpText; applyShowHelpText(saved.showHelpText); }
+      if (typeof saved.defaultTab === 'string') { state.defaultTab = saved.defaultTab; defaultTabInputEl.value = saved.defaultTab; }
+      if (typeof saved.savedSort === 'string') { state.savedSort = saved.savedSort; savedSortInputEl.value = saved.savedSort; }
+      if (typeof saved.savedPageSize === 'number') { state.savedPageSize = saved.savedPageSize; savedPageSizeInputEl.value = String(saved.savedPageSize); }
+      if (typeof saved.warnUnsavedExit === 'boolean') { state.warnUnsavedExit = saved.warnUnsavedExit; warnUnsavedExitInputEl.checked = saved.warnUnsavedExit; applyWarnUnsavedExit(saved.warnUnsavedExit); }
+      if (typeof saved.defaultChecklistPresente === 'string') { state.defaultChecklistPresente = saved.defaultChecklistPresente; defaultChecklistPresenteInputEl.value = saved.defaultChecklistPresente; }
     }
   } catch (e) { /* ignore */ }
+  // The chosen "aba ao abrir" only affects a fresh page load, applied
+  // after any locally-cached setting above so it reflects the real
+  // preference — not the hardcoded 'links' default — and only if the
+  // user hasn't already clicked into a different tab meanwhile.
+  if (state.activeTab === 'links' && state.defaultTab !== 'links') setActiveTab(state.defaultTab);
   introTemplateInputEl.value = state.introTemplate;
   renderSectionCards();
   renderFooter();
@@ -1412,7 +2437,7 @@ input:checked + .poe-check::after, .poe-check.on::after {
       ? 'JPG ou PNG — identificação automática por seção'
       : 'JPG ou PNG — identificação automática indisponível nesta visualização; classifique manualmente pelo seletor';
 
-    if (db) { subscribePoeStatus(); }
+    if (db) { subscribePoeStatus(); subscribeAtaStatus(); subscribeTenantStatus(); }
   })();
 
   // ════════════════════════════════════════════════════════════
@@ -2145,6 +3170,41 @@ input:checked + .poe-check::after, .poe-check.on::after {
     }
   }
 
+  async function downloadSavedAtaPdf(docId, buttonEl) {
+    const doc = state.savedDocs.find(d => d.id === docId);
+    if (!doc) return;
+    const previousAta = state.ata;
+    const previousTab = state.activeTab;
+    const originalLabel = buttonEl.textContent;
+    buttonEl.disabled = true;
+    buttonEl.textContent = 'Gerando PDF…';
+
+    const fresh = blankAtaState();
+    state.ata = Object.assign(fresh, doc, {
+      docId: doc.id,
+      services: Object.assign(fresh.services, doc.services || {}),
+      technologies: Object.assign(fresh.technologies, doc.technologies || {}),
+      levels: Object.assign(fresh.levels, doc.levels || {}),
+      historico: (doc.historico && doc.historico.length) ? doc.historico : fresh.historico,
+      acoes: (doc.acoes && doc.acoes.length) ? doc.acoes : fresh.acoes,
+      participantes: (doc.participantes && doc.participantes.length) ? doc.participantes : fresh.participantes
+    });
+    setActiveTab('ata');
+    renderAtaDoc();
+    // Let the tab actually paint before html2canvas captures it.
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    try {
+      await downloadAtaPdf();
+    } finally {
+      state.ata = previousAta;
+      renderAtaDoc();
+      setActiveTab(previousTab);
+      buttonEl.disabled = false;
+      buttonEl.textContent = originalLabel;
+    }
+  }
+
   async function downloadPoePdf() {
     if (!window.jspdf || !window.html2canvas) {
       poeDownloadNoteEl.textContent = 'As bibliotecas de geração de PDF não carregaram. Tente recarregar a página.';
@@ -2258,5 +3318,1183 @@ input:checked + .poe-check::after, .poe-check.on::after {
   fillPoeFormFromState();
   renderPoeChecklist();
   renderPoeDoc();
+
+  // ════════════════════════════════════════════════════════════
+  // Checklist de Finalização — Ata de Reunião de Acompanhamento de
+  // Projeto, faithful to the partner's own Excel template (colors,
+  // section order, computed Serviços/Tecnologias/Nível Benefícios
+  // fields, dynamic tables), exported as PDF.
+  // ════════════════════════════════════════════════════════════
+
+  const ATA_SERVICES = [
+    { key: 'consulting', label: 'Consulting and Professional' },
+    { key: 'custom', label: 'Custom Solution' },
+    { key: 'deployment', label: 'Deployment or Migration' },
+    { key: 'hardware', label: 'Hardware' },
+    { key: 'ip', label: 'IP Services (ISV)' },
+    { key: 'integration', label: 'Integration' },
+    { key: 'learning', label: 'Learning and Certification' },
+    { key: 'licensing', label: 'Licensing' },
+    { key: 'managed', label: 'Managed Services (MSP)' },
+    { key: 'project-services', label: 'Project Services' }
+  ];
+  const ATA_TECHNOLOGIES = [
+    { key: 'azure', label: 'Azure' },
+    { key: 'dev-tools', label: 'Developer Tools' },
+    { key: 'd365-bc', label: 'Dynamics 365 Business Central' },
+    { key: 'd365-ent', label: 'Dynamics 365 Enterprise' },
+    { key: 'dynamics-legacy', label: 'Dynamics AX, GP, NAV, SL' },
+    { key: 'ems', label: 'Enterprise Mobility + Security' },
+    { key: 'exchange', label: 'Exchange' },
+    { key: 'm365', label: 'Microsoft 365' },
+    { key: 'teams', label: 'Microsoft Teams' },
+    { key: 'o365', label: 'Office 365' },
+    { key: 'power-bi', label: 'Power BI' },
+    { key: 'project', label: 'Project' },
+    { key: 'sql', label: 'SQL' },
+    { key: 'sharepoint', label: 'SharePoint' },
+    { key: 'surface', label: 'Surface' },
+    { key: 'surface-hub', label: 'Surface Hub' },
+    { key: 'visio', label: 'Visio' },
+    { key: 'windows', label: 'Windows' },
+    { key: 'yammer', label: 'Yammer' }
+  ];
+  const ATA_LEVELS = [
+    { key: 'launch', label: 'Launch' },
+    { key: 'core', label: 'Core' },
+    { key: 'expanded', label: 'Expanded' },
+    { key: 'maicpp', label: 'MAICPP' },
+    { key: 'isv-program', label: 'ISV Program' },
+    { key: 'azure-startups', label: 'Azure for Startups' }
+  ];
+  const ATA_TYPE_OPTIONS = ['Alteração', 'Atualização', 'Entrega', 'Marco', 'Ajuste', 'Correção', 'Nova Funcionalidade', 'Cancelamento'];
+  const ATA_STATUS_OPTIONS = ['Pendente', 'Em Análise', 'Aprovado', 'Implementado', 'Cancelado'];
+  const ATA_VALIDATED_OPTIONS = ['Sim', 'Não', 'Pendente', 'N/A'];
+  const ATA_PRESENT_OPTIONS = ['Sim', 'Não', 'Online', 'Justificado'];
+  const ATA_LOCATION_OPTIONS = ['Teams', 'Google Meet', 'Presencial', 'Telefone', 'Outro'];
+  // The 3 consultoria team members — the only people who ever facilitate,
+  // take minutes, appear as "Responsável" for a change, or sign as the
+  // partner in the approval block. Participantes also needs room for the
+  // client's own people, so that list keeps a free-text fallback.
+  const ATA_TEAM_MEMBERS = ['Eduardo Alves Lorenzo', 'Bruno Tavares', 'Julia Assunção'];
+  // Real recurring entries from the partner's own Histórico de Alterações
+  // rows — offered as one-click picks so most rows never need typing;
+  // picking one also sets the paired "Tipo" below (exact pairing from
+  // their real documents), which the user can still override.
+  const ATA_HISTORICO_DESC_PRESETS = [
+    'Cadrastro no Partner center',
+    'Atulização de permissoes e Billing Profile',
+    'Pagamento',
+    'Resgate de Licenças',
+    'Cadrastro no Marktplace Microsoft',
+    'Entrega do projeto'
+  ];
+  const ATA_HISTORICO_DESC_TO_TYPE = {
+    'Cadrastro no Partner center': 'Ajuste',
+    'Atulização de permissoes e Billing Profile': 'Ajuste',
+    'Pagamento': 'Entrega',
+    'Resgate de Licenças': 'Entrega',
+    'Cadrastro no Marktplace Microsoft': 'Nova Funcionalidade',
+    'Entrega do projeto': 'Entrega'
+  };
+  const ATA_DEFAULT_OBJECTIVE = 'Estruturar o ambiente do cliente no Partner Center, garantindo o correto págamento e resgate dos benefícios Core disponíveis, além de apoiar a expansão comercial através da publicação e cadastro de ofertas no Microsoft Marketplace.';
+
+  function blankAtaHistoricoRow() { return { date: '', num: '', type: ATA_TYPE_OPTIONS[0], desc: '', responsible: ATA_TEAM_MEMBERS[0], status: ATA_STATUS_OPTIONS[0] }; }
+  function blankAtaAcaoRow() { return { desc: '', impact: '', deadline: '', clientResp: '', validated: ATA_VALIDATED_OPTIONS[2] }; }
+  function blankAtaParticipanteRow() { return { name: '', company: '', role: '', email: '', present: state.defaultChecklistPresente || ATA_PRESENT_OPTIONS[0] }; }
+
+  function blankAtaState() {
+    return {
+      docId: null,
+      brand: 'BLUEPARTNER', brandSub: 'Microsoft Partner Ecosystem',
+      numero: '', ano: String(new Date().getFullYear()), versao: '01', revisao: '',
+      meetingDate: '', startTime: '', endTime: '', location: ATA_LOCATION_OPTIONS[0], meetingNumber: '',
+      facilitator: ATA_TEAM_MEMBERS[0], secretary: ATA_TEAM_MEMBERS[0],
+      razaoSocial: '', cnpj: '', contactName: '', contactRole: 'Técnico', contactEmail: '', contactPhone: '',
+      projectId: '', segment: 'Consultoria',
+      services: Object.fromEntries(ATA_SERVICES.map(s => [s.key, false])),
+      technologies: Object.fromEntries(ATA_TECHNOLOGIES.map(t => [t.key, false])),
+      levels: Object.fromEntries(ATA_LEVELS.map(l => [l.key, false])),
+      objective: ATA_DEFAULT_OBJECTIVE,
+      historico: [blankAtaHistoricoRow()],
+      acoes: [blankAtaAcaoRow()],
+      participantes: [
+        Object.assign(blankAtaParticipanteRow(), { name: ATA_TEAM_MEMBERS[0], company: 'Bluepartner' }),
+        blankAtaParticipanteRow()
+      ],
+      approvalPartnerName: 'Bruno Tavares', approvalPartnerRole: 'Coordenador da Consultoria', approvalPartnerDate: '',
+      approvalClientName: '', approvalClientRole: '', approvalClientDate: ''
+    };
+  }
+  state.ata = blankAtaState();
+  let ataSaveTimer = null;
+
+  const ataCompanyEl = document.getElementById('ata-company');
+  const ataCompanySubEl = document.getElementById('ata-company-sub');
+  const ataNumeroEl = document.getElementById('ata-numero');
+  const ataAnoEl = document.getElementById('ata-ano');
+  const ataVersaoEl = document.getElementById('ata-versao');
+  const ataRevisaoEl = document.getElementById('ata-revisao');
+  const ataDataReuniaoEl = document.getElementById('ata-data-reuniao');
+  const ataHoraInicioEl = document.getElementById('ata-hora-inicio');
+  const ataHoraTerminoEl = document.getElementById('ata-hora-termino');
+  const ataLocalEl = document.getElementById('ata-local');
+  const ataNumeroReuniaoEl = document.getElementById('ata-numero-reuniao');
+  const ataFacilitadorEl = document.getElementById('ata-facilitador');
+  const ataSecretarioEl = document.getElementById('ata-secretario');
+  const ataRazaoSocialEl = document.getElementById('ata-razao-social');
+  const ataCnpjEl = document.getElementById('ata-cnpj');
+  const ataContatoEl = document.getElementById('ata-contato');
+  const ataCargoContatoEl = document.getElementById('ata-cargo-contato');
+  const ataEmailEl = document.getElementById('ata-email');
+  const ataTelefoneEl = document.getElementById('ata-telefone');
+  const ataProjetoIdEl = document.getElementById('ata-projeto-id');
+  const ataSegmentoEl = document.getElementById('ata-segmento');
+  const ataConfigHeadEl = document.getElementById('ata-config-head');
+  const ataConfigBodyEl = document.getElementById('ata-config-body');
+  const ataServicesListEl = document.getElementById('ata-services-list');
+  const ataTechnologiesListEl = document.getElementById('ata-technologies-list');
+  const ataLevelsListEl = document.getElementById('ata-levels-list');
+  const ataObjetivoEl = document.getElementById('ata-objetivo');
+  const ataHistoricoTableEl = document.getElementById('ata-historico-table');
+  const ataHistoricoAddBtnEl = document.getElementById('ata-historico-add-btn');
+  const ataAcoesTableEl = document.getElementById('ata-acoes-table');
+  const ataAcoesAddBtnEl = document.getElementById('ata-acoes-add-btn');
+  const ataParticipantesTableEl = document.getElementById('ata-participantes-table');
+  const ataParticipantesAddBtnEl = document.getElementById('ata-participantes-add-btn');
+  const ataAprovParceiroNomeEl = document.getElementById('ata-aprov-parceiro-nome');
+  const ataAprovParceiroCargoEl = document.getElementById('ata-aprov-parceiro-cargo');
+  const ataAprovParceiroDataEl = document.getElementById('ata-aprov-parceiro-data');
+  const ataAprovClienteNomeEl = document.getElementById('ata-aprov-cliente-nome');
+  const ataAprovClienteCargoEl = document.getElementById('ata-aprov-cliente-cargo');
+  const ataAprovClienteDataEl = document.getElementById('ata-aprov-cliente-data');
+  const ataDocEl = document.getElementById('ata-doc');
+  const ataSaveStatusEl = document.getElementById('ata-save-status');
+  const ataSaveStatusTextEl = document.getElementById('ata-save-status-text');
+  const ataDownloadBtnEl = document.getElementById('ata-download-btn');
+  const ataDownloadNoteEl = document.getElementById('ata-download-note');
+
+  function computeAtaJoin(list, activeMap, emptyMessage) {
+    const active = list.filter(item => activeMap[item.key]);
+    if (!active.length) return emptyMessage;
+    return active.map(item => item.label).join(' | ');
+  }
+
+  // — config panel (Serviço / Tecnologia / Nível Benefícios checkboxes) —
+  function renderAtaConfigLists() {
+    function renderGroup(containerEl, list, mapObj) {
+      containerEl.innerHTML = '';
+      list.forEach(item => {
+        const label = document.createElement('label'); label.className = 'checkbox';
+        const input = document.createElement('input'); input.type = 'checkbox'; input.checked = !!mapObj[item.key];
+        input.addEventListener('change', () => { mapObj[item.key] = input.checked; debouncedRenderAtaDoc(); scheduleAtaSave(); });
+        const box = document.createElement('span'); box.className = 'box';
+        const span = document.createElement('span'); span.textContent = item.label;
+        label.append(input, box, span);
+        containerEl.appendChild(label);
+      });
+    }
+    renderGroup(ataServicesListEl, ATA_SERVICES, state.ata.services);
+    renderGroup(ataTechnologiesListEl, ATA_TECHNOLOGIES, state.ata.technologies);
+    renderGroup(ataLevelsListEl, ATA_LEVELS, state.ata.levels);
+  }
+  ataConfigHeadEl.addEventListener('click', () => {
+    const open = ataConfigBodyEl.hidden;
+    ataConfigBodyEl.hidden = !open;
+    ataConfigHeadEl.classList.toggle('open', open);
+  });
+
+  // — generic editable table used by the 3 dynamic sections —
+  function renderAtaEditableTable(containerEl, rows, columns, minRows, onChange, rerender) {
+    containerEl.innerHTML = '';
+    const table = document.createElement('table');
+    table.className = 'ata-edit-table';
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    columns.forEach(col => { const th = document.createElement('th'); th.textContent = col.label; headRow.appendChild(th); });
+    headRow.appendChild(document.createElement('th'));
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    rows.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      columns.forEach(col => {
+        const td = document.createElement('td');
+        let input;
+        if (col.type === 'select') {
+          input = document.createElement('select'); input.className = 'input';
+          col.options.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; input.appendChild(o); });
+          input.value = row[col.key];
+          input.addEventListener('change', () => { row[col.key] = input.value; onChange(); });
+        } else if (col.type === 'preset') {
+          // A dropdown of common picks with a free-text fallback ("Outro")
+          // for the rare case that isn't one of them — used wherever most
+          // rows in practice repeat the same handful of values.
+          const wrap = document.createElement('div'); wrap.className = 'preset-wrap';
+          const select = document.createElement('select'); select.className = 'input';
+          const blank = document.createElement('option'); blank.value = ''; blank.textContent = '— selecione —';
+          select.appendChild(blank);
+          col.options.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; select.appendChild(o); });
+          const customOpt = document.createElement('option'); customOpt.value = '__custom__'; customOpt.textContent = col.customLabel || 'Outro (digitar)';
+          select.appendChild(customOpt);
+          const currentVal = row[col.key] || '';
+          const isPreset = col.options.includes(currentVal);
+          select.value = currentVal === '' ? '' : (isPreset ? currentVal : '__custom__');
+          const textInput = document.createElement('input'); textInput.className = 'input'; textInput.type = 'text';
+          textInput.value = currentVal;
+          textInput.hidden = select.value !== '__custom__';
+          select.addEventListener('change', () => {
+            if (select.value === '__custom__') {
+              textInput.hidden = false; textInput.focus();
+              row[col.key] = textInput.value;
+            } else {
+              textInput.hidden = true;
+              row[col.key] = select.value;
+              if (col.onPreset) col.onPreset(row, select.value);
+              onChange(); rerender();
+              return;
+            }
+            onChange();
+          });
+          textInput.addEventListener('input', () => { row[col.key] = textInput.value; onChange(); });
+          wrap.append(select, textInput);
+          td.appendChild(wrap);
+          tr.appendChild(td);
+          return;
+        } else if (col.type === 'textarea') {
+          input = document.createElement('textarea'); input.className = 'input'; input.rows = 2;
+          input.value = row[col.key] || '';
+          input.addEventListener('input', () => { row[col.key] = input.value; onChange(); });
+        } else {
+          input = document.createElement('input'); input.className = 'input'; input.type = col.type || 'text';
+          input.value = row[col.key] || '';
+          input.addEventListener('input', () => { row[col.key] = input.value; onChange(); });
+        }
+        td.appendChild(input);
+        tr.appendChild(td);
+      });
+      const tdAction = document.createElement('td');
+      if (rows.length > minRows) {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'row-remove-btn'; btn.title = 'Remover linha'; btn.textContent = '✕';
+        btn.addEventListener('click', () => { rows.splice(idx, 1); onChange(); rerender(); });
+        tdAction.appendChild(btn);
+      }
+      tr.appendChild(tdAction);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    containerEl.appendChild(table);
+  }
+
+  const ATA_HISTORICO_COLUMNS = [
+    { key: 'date', label: 'Data', type: 'date' },
+    { key: 'num', label: 'Nº Alt.', type: 'text' },
+    { key: 'type', label: 'Tipo', type: 'select', options: ATA_TYPE_OPTIONS },
+    {
+      key: 'desc', label: 'Descrição da Alteração / Atualização', type: 'preset',
+      options: ATA_HISTORICO_DESC_PRESETS, customLabel: 'Outro (digitar)',
+      onPreset: (row, val) => { row.type = ATA_HISTORICO_DESC_TO_TYPE[val] || row.type; }
+    },
+    { key: 'responsible', label: 'Responsável', type: 'select', options: ATA_TEAM_MEMBERS },
+    { key: 'status', label: 'Status', type: 'select', options: ATA_STATUS_OPTIONS }
+  ];
+  const ATA_ACOES_COLUMNS = [
+    { key: 'desc', label: 'Ação / Pendência', type: 'textarea' },
+    { key: 'impact', label: 'Impacto no Projeto', type: 'text' },
+    { key: 'deadline', label: 'Prazo', type: 'date' },
+    { key: 'clientResp', label: 'Resp. Cliente', type: 'text' },
+    { key: 'validated', label: 'Validado', type: 'select', options: ATA_VALIDATED_OPTIONS }
+  ];
+  const ATA_PARTICIPANTES_COLUMNS = [
+    {
+      key: 'name', label: 'Nome Completo', type: 'preset',
+      options: ATA_TEAM_MEMBERS, customLabel: 'Outro (nome do cliente)',
+      onPreset: (row, val) => { row.company = 'Bluepartner'; }
+    },
+    { key: 'company', label: 'Empresa', type: 'text' },
+    { key: 'role', label: 'Cargo', type: 'text' },
+    { key: 'email', label: 'E-mail', type: 'text' },
+    { key: 'present', label: 'Presente', type: 'select', options: ATA_PRESENT_OPTIONS }
+  ];
+
+  function renderAtaHistoricoTable() {
+    renderAtaEditableTable(ataHistoricoTableEl, state.ata.historico, ATA_HISTORICO_COLUMNS, 1,
+      () => { debouncedRenderAtaDoc(); scheduleAtaSave(); }, renderAtaHistoricoTable);
+  }
+  function renderAtaAcoesTable() {
+    renderAtaEditableTable(ataAcoesTableEl, state.ata.acoes, ATA_ACOES_COLUMNS, 1,
+      () => { debouncedRenderAtaDoc(); scheduleAtaSave(); }, renderAtaAcoesTable);
+  }
+  function renderAtaParticipantesTable() {
+    renderAtaEditableTable(ataParticipantesTableEl, state.ata.participantes, ATA_PARTICIPANTES_COLUMNS, 1,
+      () => { debouncedRenderAtaDoc(); scheduleAtaSave(); }, renderAtaParticipantesTable);
+  }
+  ataHistoricoAddBtnEl.addEventListener('click', () => { state.ata.historico.push(blankAtaHistoricoRow()); renderAtaHistoricoTable(); debouncedRenderAtaDoc(); scheduleAtaSave(); });
+  ataAcoesAddBtnEl.addEventListener('click', () => { state.ata.acoes.push(blankAtaAcaoRow()); renderAtaAcoesTable(); debouncedRenderAtaDoc(); scheduleAtaSave(); });
+  ataParticipantesAddBtnEl.addEventListener('click', () => { state.ata.participantes.push(blankAtaParticipanteRow()); renderAtaParticipantesTable(); debouncedRenderAtaDoc(); scheduleAtaSave(); });
+
+  // — printable document builders (columns B:G of the source sheet only —
+  // the CONFIGURAÇÃO panel above sits outside the sheet's own print area
+  // and is therefore edit-only, never printed, exactly like the source) —
+  function ataPair(label, value, opts) {
+    const div = document.createElement('div'); div.className = 'ata-pair' + (opts && opts.full ? ' full' : '');
+    const l = document.createElement('span'); l.className = 'lbl'; l.textContent = label;
+    const v = document.createElement('span'); v.className = 'val' + (opts && opts.link ? ' link' : ''); v.textContent = value || '';
+    div.append(l, v);
+    return div;
+  }
+  function ataRow(...pairs) {
+    const row = document.createElement('div'); row.className = 'ata-row';
+    pairs.forEach(p => row.appendChild(p));
+    return row;
+  }
+  function ataSectionBar(text, variant) {
+    const div = document.createElement('div'); div.className = 'ata-section-bar ' + variant; div.textContent = text;
+    return div;
+  }
+  function ataSectionNote(text) {
+    const div = document.createElement('div'); div.className = 'ata-section-note'; div.textContent = text;
+    return div;
+  }
+  function ataTable(rows, columns, cssClass) {
+    const table = document.createElement('table'); table.className = 'ata-table' + (cssClass ? ' ' + cssClass : '');
+    const thead = document.createElement('thead'); const tr = document.createElement('tr');
+    columns.forEach(c => { const th = document.createElement('th'); th.textContent = c.label; tr.appendChild(th); });
+    thead.appendChild(tr); table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    rows.forEach(row => {
+      const rtr = document.createElement('tr');
+      columns.forEach(c => { const td = document.createElement('td'); td.textContent = row[c.key] || ''; rtr.appendChild(td); });
+      tbody.appendChild(rtr);
+    });
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function buildAtaBlocks() {
+    const a = state.ata;
+    const blocks = [];
+
+    const brandEl = document.createElement('div'); brandEl.className = 'ata-brand'; brandEl.textContent = a.brand || 'BLUEPARTNER';
+    blocks.push(brandEl);
+    const subEl = document.createElement('div'); subEl.className = 'ata-subtitle'; subEl.textContent = a.brandSub || 'Microsoft Partner Ecosystem';
+    blocks.push(subEl);
+    const titleEl = document.createElement('div'); titleEl.className = 'ata-titlebar'; titleEl.textContent = 'ATA DE REUNIÃO DE ACOMPANHAMENTO DE PROJETO';
+    blocks.push(titleEl);
+    const metaEl = document.createElement('div'); metaEl.className = 'ata-metabar';
+    metaEl.textContent = `Ata Nº: ${a.numero || '__'} / ${a.ano || '____'}     |     Versão: ${a.versao || '__'}     |     Revisão: ${a.revisao || '_____'}`;
+    blocks.push(metaEl);
+
+    blocks.push(ataSectionBar('1. INFORMAÇÕES DA REUNIÃO', 'light'));
+    blocks.push(ataRow(
+      ataPair('Data da Reunião:', formatDateBR(a.meetingDate)),
+      ataPair('Hora Início:', a.startTime),
+      ataPair('Hora Término:', a.endTime)
+    ));
+    blocks.push(ataRow(
+      ataPair('Local/Plataforma:', a.location),
+      ataPair('Nº Reunião:', a.meetingNumber)
+    ));
+    blocks.push(ataRow(
+      ataPair('Facilitador:', a.facilitator),
+      ataPair('Secretário(a):', a.secretary)
+    ));
+
+    blocks.push(ataSectionBar('2. IDENTIFICAÇÃO DO CLIENTE / PARCEIRO', 'light'));
+    blocks.push(ataRow(
+      ataPair('Razão Social:', a.razaoSocial),
+      ataPair('CNPJ:', a.cnpj)
+    ));
+    blocks.push(ataRow(
+      ataPair('Contato Principal:', a.contactName),
+      ataPair('Cargo:', a.contactRole)
+    ));
+    blocks.push(ataRow(
+      ataPair('E-mail:', a.contactEmail, { link: true }),
+      ataPair('Telefone:', a.contactPhone)
+    ));
+    blocks.push(ataRow(
+      ataPair('Projeto/MAICPP ID:', a.projectId),
+      ataPair('Segmento:', a.segment)
+    ));
+    blocks.push(ataRow(ataPair('Serviços:', computeAtaJoin(ATA_SERVICES, a.services, '(Selecione os serviços na área de configuração)'), { full: true })));
+    blocks.push(ataRow(ataPair('Tecnologias MS:', computeAtaJoin(ATA_TECHNOLOGIES, a.technologies, '(Selecione as tecnologias na área de configuração)'), { full: true })));
+    blocks.push(ataRow(ataPair('Nível Benefícios:', computeAtaJoin(ATA_LEVELS, a.levels, '(Selecione o nível na área de configuração)'), { full: true })));
+
+    blocks.push(ataSectionBar('3. OBJETIVO DA REUNIÃO', 'light'));
+    const objEl = document.createElement('div'); objEl.className = 'ata-objective'; objEl.textContent = a.objective || '';
+    blocks.push(objEl);
+
+    blocks.push(ataSectionBar('4. HISTÓRICO DE ALTERAÇÕES / ATUALIZAÇÕES DO PROJETO', 'dark'));
+    blocks.push(ataSectionNote('Registre abaixo todas as alterações, atualizações e marcos importantes do projeto para ciência do cliente.'));
+    blocks.push(ataTable(
+      a.historico.map(r => Object.assign({}, r, { date: formatDateBR(r.date) })),
+      [
+        { key: 'date', label: 'Data' }, { key: 'num', label: 'Nº Alt.' }, { key: 'type', label: 'Tipo' },
+        { key: 'desc', label: 'Descrição da Alteração / Atualização' }, { key: 'responsible', label: 'Responsável' }, { key: 'status', label: 'Status' }
+      ]
+    ));
+
+    blocks.push(ataSectionBar('5. PRÓXIMAS AÇÕES / PENDÊNCIAS PARA CIÊNCIA DO CLIENTE', 'dark'));
+    blocks.push(ataSectionNote('Ações que requerem aprovação, validação ou ciência do cliente antes de prosseguir.'));
+    blocks.push(ataTable(
+      a.acoes.map((r, i) => Object.assign({}, r, { deadline: formatDateBR(r.deadline), _num: String(i + 1) })),
+      [
+        { key: '_num', label: 'Nº' }, { key: 'desc', label: 'Ação / Pendência' }, { key: 'impact', label: 'Impacto no Projeto' },
+        { key: 'deadline', label: 'Prazo' }, { key: 'clientResp', label: 'Resp. Cliente' }, { key: 'validated', label: 'Validado' }
+      ],
+      'acoes'
+    ));
+
+    blocks.push(ataSectionBar('6. PARTICIPANTES E ASSINATURAS', 'dark'));
+    blocks.push(ataTable(
+      a.participantes.map(r => Object.assign({}, r, { _sig: '' })),
+      [
+        { key: 'name', label: 'Nome Completo' }, { key: 'company', label: 'Empresa' }, { key: 'role', label: 'Cargo' },
+        { key: 'email', label: 'E-mail' }, { key: 'present', label: 'Presente' }, { key: '_sig', label: 'Assinatura' }
+      ],
+      'participantes'
+    ));
+
+    const approvalBarEl = document.createElement('div'); approvalBarEl.className = 'ata-approval-bar'; approvalBarEl.textContent = 'APROVAÇÃO DO DOCUMENTO';
+    blocks.push(approvalBarEl);
+    const approvalGrid = document.createElement('div'); approvalGrid.className = 'ata-approval-grid';
+    function approvalCol(label, name, role, date) {
+      const c = document.createElement('div'); c.className = 'ata-approval-col';
+      const hdr = document.createElement('div'); hdr.className = 'hdr'; hdr.textContent = label; c.appendChild(hdr);
+      [`Data: ${formatDateBR(date) || '____/____/________'}`, `Nome: ${name || ''}`, `Cargo: ${role || ''}`, 'Assinatura: ________________________________'].forEach(t => {
+        const p = document.createElement('div'); p.className = 'line'; p.textContent = t; c.appendChild(p);
+      });
+      return c;
+    }
+    approvalGrid.append(
+      approvalCol(`Responsável ${a.brand || 'Parceiro'}:`, a.approvalPartnerName, a.approvalPartnerRole, a.approvalPartnerDate),
+      approvalCol('Responsável Cliente:', a.approvalClientName, a.approvalClientRole, a.approvalClientDate)
+    );
+    blocks.push(approvalGrid);
+
+    const brandName = a.brand || 'Bluepartner';
+    const brandSubName = a.brandSub || 'Microsoft Partner Ecosystem';
+    const footer1 = document.createElement('div'); footer1.className = 'ata-footer-bar'; footer1.textContent = `© ${brandName} - ${brandSubName} | Documento Confidencial`;
+    blocks.push(footer1);
+    const footerRule = document.createElement('div'); footerRule.className = 'ata-footer-bar rule'; footerRule.textContent = '─'.repeat(90);
+    blocks.push(footerRule);
+    const footerPmbok = document.createElement('div'); footerPmbok.className = 'ata-footer-bar pmbok'; footerPmbok.textContent = 'Documento baseado nas melhores práticas do PMBOK® - Project Management Body of Knowledge';
+    blocks.push(footerPmbok);
+    const footer2 = document.createElement('div'); footer2.className = 'ata-footer-bar last'; footer2.textContent = `© ${brandName} - ${brandSubName} | Documento Confidencial`;
+    blocks.push(footer2);
+
+    return blocks;
+  }
+
+  // — pagination + render —
+  const ATA_PAGE_CONTENT_WIDTH = 816 - 96;
+  const ATA_PAGE_MAX_CONTENT_HEIGHT = 900;
+
+  function measureAndPaginateAta(blocks) {
+    const probe = document.createElement('div');
+    probe.className = 'ata-doc';
+    probe.style.cssText = `position:fixed;left:-99999px;top:0;width:${ATA_PAGE_CONTENT_WIDTH}px;`;
+    document.body.appendChild(probe);
+    blocks.forEach(b => probe.appendChild(b));
+    const heights = blocks.map(b => b.getBoundingClientRect().height);
+    blocks.forEach(b => probe.removeChild(b));
+    document.body.removeChild(probe);
+
+    const pages = [];
+    let current = [], h = 0;
+    blocks.forEach((b, i) => {
+      const bh = heights[i];
+      if (current.length && h + bh > ATA_PAGE_MAX_CONTENT_HEIGHT) { pages.push(current); current = []; h = 0; }
+      current.push(b); h += bh;
+    });
+    if (current.length) pages.push(current);
+    return pages;
+  }
+
+  function buildAtaPageShell(index, total) {
+    const page = document.createElement('div'); page.className = 'ata-page';
+    const content = document.createElement('div');
+    page.appendChild(content);
+    const footer = document.createElement('div'); footer.className = 'ata-footer';
+    footer.textContent = `Ata de Reunião — Página ${index} de ${total}`;
+    page.appendChild(footer);
+    return { page, content };
+  }
+
+  function renderAtaDoc() {
+    const pages = measureAndPaginateAta(buildAtaBlocks());
+    ataDocEl.innerHTML = '';
+    pages.forEach((blocks, i) => {
+      const { page, content } = buildAtaPageShell(i + 1, pages.length);
+      blocks.forEach(b => content.appendChild(b));
+      ataDocEl.appendChild(page);
+    });
+  }
+  const debouncedRenderAtaDoc = debounce(renderAtaDoc, 200);
+
+  // — save / load —
+  function setAtaSaveStatus(mode, text) {
+    ataSaveStatusEl.className = 'save-status' + (mode ? ' ' + mode : '');
+    ataSaveStatusTextEl.textContent = text;
+  }
+  function scheduleAtaSave() {
+    if (ataSaveTimer) clearTimeout(ataSaveTimer);
+    if (!state.ata.razaoSocial.trim()) { setAtaSaveStatus('', 'Preencha a razão social do cliente para salvar automaticamente'); return; }
+    if (!db) { setAtaSaveStatus('', 'Salvamento indisponível nesta visualização'); return; }
+    setAtaSaveStatus('busy', 'Salvando…');
+    ataSaveTimer = setTimeout(doAtaSave, 1200);
+  }
+  function subscribeAtaStatus() {
+    if (!state.ata.razaoSocial.trim()) setAtaSaveStatus('', 'Preencha a razão social do cliente para salvar automaticamente');
+  }
+  async function doAtaSave() {
+    const name = state.ata.razaoSocial.trim();
+    if (!name || !db) return;
+    const docId = state.ata.docId || ('ata-' + slugify(name));
+    const a = state.ata;
+    // Explicit field list (not a splat of state.ata) — matches the proven
+    // pattern used by CPOR/POE, so nothing stray ever rides along in the
+    // saved body.
+    const body = {
+      type: 'ata', name: 'Ata de Reunião ' + name, empresa: name, updatedAt: new Date().toISOString(),
+      brand: a.brand, brandSub: a.brandSub, numero: a.numero, ano: a.ano, versao: a.versao, revisao: a.revisao,
+      meetingDate: a.meetingDate, startTime: a.startTime, endTime: a.endTime, location: a.location, meetingNumber: a.meetingNumber,
+      facilitator: a.facilitator, secretary: a.secretary,
+      razaoSocial: a.razaoSocial, cnpj: a.cnpj, contactName: a.contactName, contactRole: a.contactRole, contactEmail: a.contactEmail, contactPhone: a.contactPhone,
+      projectId: a.projectId, segment: a.segment,
+      services: a.services, technologies: a.technologies, levels: a.levels,
+      objective: a.objective,
+      historico: a.historico, acoes: a.acoes, participantes: a.participantes,
+      approvalPartnerName: a.approvalPartnerName, approvalPartnerRole: a.approvalPartnerRole, approvalPartnerDate: a.approvalPartnerDate,
+      approvalClientName: a.approvalClientName, approvalClientRole: a.approvalClientRole, approvalClientDate: a.approvalClientDate
+    };
+    try {
+      await db.doc('documents/' + docId).set(body);
+      state.ata.docId = docId;
+      setAtaSaveStatus('ok', 'Salvo automaticamente');
+    } catch (e) {
+      setAtaSaveStatus('err', 'Não foi possível salvar');
+    }
+  }
+
+  function populateAtaSelects() {
+    function fill(el, options) {
+      el.innerHTML = '';
+      options.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; el.appendChild(o); });
+    }
+    fill(ataLocalEl, ATA_LOCATION_OPTIONS);
+    fill(ataFacilitadorEl, ATA_TEAM_MEMBERS);
+    fill(ataSecretarioEl, ATA_TEAM_MEMBERS);
+    fill(ataAprovParceiroNomeEl, ATA_TEAM_MEMBERS);
+  }
+
+  function fillAtaFormFromState() {
+    const a = state.ata;
+    ataCompanyEl.value = a.brand; ataCompanySubEl.value = a.brandSub;
+    ataNumeroEl.value = a.numero; ataAnoEl.value = a.ano; ataVersaoEl.value = a.versao; ataRevisaoEl.value = a.revisao;
+    ataDataReuniaoEl.value = a.meetingDate; ataHoraInicioEl.value = a.startTime; ataHoraTerminoEl.value = a.endTime;
+    ataLocalEl.value = a.location; ataNumeroReuniaoEl.value = a.meetingNumber; ataFacilitadorEl.value = a.facilitator; ataSecretarioEl.value = a.secretary;
+    ataRazaoSocialEl.value = a.razaoSocial; ataCnpjEl.value = a.cnpj; ataContatoEl.value = a.contactName; ataCargoContatoEl.value = a.contactRole;
+    ataEmailEl.value = a.contactEmail; ataTelefoneEl.value = a.contactPhone; ataProjetoIdEl.value = a.projectId; ataSegmentoEl.value = a.segment;
+    ataObjetivoEl.value = a.objective;
+    ataAprovParceiroNomeEl.value = a.approvalPartnerName; ataAprovParceiroCargoEl.value = a.approvalPartnerRole; ataAprovParceiroDataEl.value = a.approvalPartnerDate;
+    ataAprovClienteNomeEl.value = a.approvalClientName; ataAprovClienteCargoEl.value = a.approvalClientRole; ataAprovClienteDataEl.value = a.approvalClientDate;
+  }
+
+  async function loadAtaDocument(docId) {
+    if (!db) return;
+    const snap = await db.doc('documents/' + docId).get().catch(() => null);
+    if (!snap || !snap.exists) return;
+    const data = snap.data();
+    const fresh = blankAtaState();
+    state.ata = Object.assign(fresh, data, {
+      docId,
+      services: Object.assign(fresh.services, data.services || {}),
+      technologies: Object.assign(fresh.technologies, data.technologies || {}),
+      levels: Object.assign(fresh.levels, data.levels || {}),
+      historico: (data.historico && data.historico.length) ? data.historico : fresh.historico,
+      acoes: (data.acoes && data.acoes.length) ? data.acoes : fresh.acoes,
+      participantes: (data.participantes && data.participantes.length) ? data.participantes : fresh.participantes
+    });
+    setActiveTab('ata');
+    fillAtaFormFromState();
+    renderAtaConfigLists();
+    renderAtaHistoricoTable();
+    renderAtaAcoesTable();
+    renderAtaParticipantesTable();
+    renderAtaDoc();
+    setAtaSaveStatus('ok', 'Aberto — pronto para editar');
+  }
+
+  async function downloadAtaPdf() {
+    if (!window.jspdf || !window.html2canvas) {
+      ataDownloadNoteEl.textContent = 'As bibliotecas de geração de PDF não carregaram. Tente recarregar a página.';
+      ataDownloadNoteEl.className = 'save-note err'; ataDownloadNoteEl.hidden = false;
+      return;
+    }
+    ataDownloadBtnEl.disabled = true;
+    const label = ataDownloadBtnEl.lastChild;
+    const originalLabel = label.textContent;
+    label.textContent = ' Gerando PDF…';
+    ataDownloadNoteEl.hidden = true;
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'pt', format: 'letter' });
+      const pageEls = Array.from(ataDocEl.querySelectorAll('.ata-page'));
+      for (let i = 0; i < pageEls.length; i++) {
+        const canvas = await window.html2canvas(pageEls[i], { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        if (i > 0) pdf.addPage('letter');
+        pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792);
+      }
+      const blob = pdf.output('blob');
+      const filename = `Ata-Reuniao-${slugify(state.ata.razaoSocial || 'documento')}.pdf`;
+
+      const inClaudeViewer = !!window.claude;
+      const downloads = inClaudeViewer ? await window.claude.use('downloads') : null;
+      if (downloads) {
+        await downloads.save({ filename, data: blob });
+        ataDownloadNoteEl.textContent = 'PDF gerado e enviado para download.';
+        ataDownloadNoteEl.className = 'save-note ok';
+      } else if (!inClaudeViewer) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        ataDownloadNoteEl.textContent = 'PDF baixado.';
+        ataDownloadNoteEl.className = 'save-note ok';
+      } else {
+        ataDownloadNoteEl.textContent = 'Download indisponível nesta visualização.';
+        ataDownloadNoteEl.className = 'save-note err';
+      }
+    } catch (e) {
+      ataDownloadNoteEl.textContent = 'Não foi possível gerar o PDF agora. Tente novamente.';
+      ataDownloadNoteEl.className = 'save-note err';
+    } finally {
+      ataDownloadNoteEl.hidden = false;
+      ataDownloadBtnEl.disabled = false;
+      label.textContent = originalLabel;
+    }
+  }
+
+  // — wiring —
+  [
+    [ataCompanyEl, 'brand'], [ataCompanySubEl, 'brandSub'], [ataNumeroEl, 'numero'], [ataAnoEl, 'ano'],
+    [ataVersaoEl, 'versao'], [ataRevisaoEl, 'revisao'],
+    [ataDataReuniaoEl, 'meetingDate'], [ataHoraInicioEl, 'startTime'], [ataHoraTerminoEl, 'endTime'],
+    [ataLocalEl, 'location'], [ataNumeroReuniaoEl, 'meetingNumber'], [ataFacilitadorEl, 'facilitator'], [ataSecretarioEl, 'secretary'],
+    [ataRazaoSocialEl, 'razaoSocial'], [ataCnpjEl, 'cnpj'], [ataContatoEl, 'contactName'], [ataCargoContatoEl, 'contactRole'],
+    [ataEmailEl, 'contactEmail'], [ataTelefoneEl, 'contactPhone'], [ataProjetoIdEl, 'projectId'], [ataSegmentoEl, 'segment'],
+    [ataObjetivoEl, 'objective'],
+    [ataAprovParceiroNomeEl, 'approvalPartnerName'], [ataAprovParceiroCargoEl, 'approvalPartnerRole'], [ataAprovParceiroDataEl, 'approvalPartnerDate'],
+    [ataAprovClienteNomeEl, 'approvalClientName'], [ataAprovClienteCargoEl, 'approvalClientRole'], [ataAprovClienteDataEl, 'approvalClientDate']
+  ].forEach(([el, key]) => {
+    el.addEventListener('input', () => { state.ata[key] = el.value; debouncedRenderAtaDoc(); scheduleAtaSave(); });
+  });
+
+  ataDownloadBtnEl.addEventListener('click', downloadAtaPdf);
+
+  // — init —
+  populateAtaSelects();
+  fillAtaFormFromState();
+  renderAtaConfigLists();
+  renderAtaHistoricoTable();
+  renderAtaAcoesTable();
+  renderAtaParticipantesTable();
+  renderAtaDoc();
+  renderTeamMembersEditor();
+
+  // ════════════════════════════════════════════════════════════
+  // Shared helper: hand a generated Blob (PDF or spreadsheet) to the
+  // viewer — Claude's own download capability when available, a plain
+  // <a download> outside it. noteEl is optional (the "download from the
+  // saved list" buttons show progress in the button label instead).
+  // ════════════════════════════════════════════════════════════
+  async function saveGeneratedFile(blob, filename, noteEl) {
+    const inClaudeViewer = !!window.claude;
+    const downloads = inClaudeViewer ? await window.claude.use('downloads') : null;
+    let text, cls;
+    if (downloads) {
+      await downloads.save({ filename, data: blob });
+      text = 'Planilha gerada e enviada para download.'; cls = 'save-note ok';
+    } else if (!inClaudeViewer) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      text = 'Planilha baixada.'; cls = 'save-note ok';
+    } else {
+      text = 'Download indisponível nesta visualização.'; cls = 'save-note err';
+    }
+    if (noteEl) { noteEl.textContent = text; noteEl.className = cls; noteEl.hidden = false; }
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Consulta de Tenant ID — cole o resultado bruto do
+  // tenantidfinder.com (ou do whatismytenantid.com, um domínio por
+  // vez) e a tabela colorida + legenda + estatísticas são montadas
+  // sozinhas — a mesma transformação que o Copilot faz na planilha,
+  // só que sem precisar do Copilot. Status é sempre recalculado ao
+  // vivo (Tenant ID achado + MX contém "Outlook" = verde), nunca
+  // apenas copiado do texto colado, para continuar correto se o
+  // Tenant ID ou o provedor de MX forem corrigidos à mão depois.
+  // ════════════════════════════════════════════════════════════
+
+  function blankTenantRow() {
+    return {
+      client: '', domain: '', tenantId: '', licenses: '', licenseQty: '', activeUsers: '',
+      exchange: false, teams: false, apps: false, sharepoint: false,
+      autodiscover: '', mxProvider: '', dmarc: '', notes: ''
+    };
+  }
+  state.tenant = { docId: null, reportName: '', rows: [] };
+  let tenantSaveTimer = null;
+
+  const tenantReportNameEl = document.getElementById('tenant-report-name');
+  const tenantPasteBoxEl = document.getElementById('tenant-paste-box');
+  const tenantProcessBtnEl = document.getElementById('tenant-process-btn');
+  const tenantPasteNoteEl = document.getElementById('tenant-paste-note');
+  const tenantCopyDomainsBtnEl = document.getElementById('tenant-copy-domains-btn');
+  const tenantLegendEl = document.getElementById('tenant-legend');
+  const tenantStatsEl = document.getElementById('tenant-stats');
+  const tenantTableEl = document.getElementById('tenant-table');
+  const tenantAddBtnEl = document.getElementById('tenant-add-btn');
+  const tenantSaveStatusEl = document.getElementById('tenant-save-status');
+  const tenantSaveStatusTextEl = document.getElementById('tenant-save-status-text');
+  const tenantDownloadBtnEl = document.getElementById('tenant-download-btn');
+  const tenantDownloadNoteEl = document.getElementById('tenant-download-note');
+
+  function tenantStatus(row) {
+    if (!row.tenantId || !row.tenantId.trim()) return { key: 'red', label: '🔴 Sem Microsoft' };
+    if (row.mxProvider && /outlook/i.test(row.mxProvider)) return { key: 'green', label: '🟢 Microsoft Ativo' };
+    return { key: 'yellow', label: '🟡 Tenant Identificado' };
+  }
+
+  function normalizeHeaderText(s) {
+    return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  }
+  const TENANT_HEADER_ALIASES = {
+    'cliente': 'client', 'domino': 'domain', 'dominio': 'domain',
+    'tenant id': 'tenantId', 'licencas': 'licenses',
+    'qtd licencas': 'licenseQty', 'qtd usuario ativos': 'activeUsers', 'qtd usuarios ativos': 'activeUsers',
+    'exchange': 'exchange', 'teams': 'teams', 'apps': 'apps', 'sharepoint': 'sharepoint',
+    'status': 'status', 'autodiscover': 'autodiscover',
+    'provedor mx': 'mxProvider', 'politica dmarc': 'dmarc', 'observacao': 'notes'
+  };
+  const TENANT_DEFAULT_COLUMN_ORDER = ['client', 'domain', 'tenantId', 'licenses', 'licenseQty', 'activeUsers', 'exchange', 'teams', 'apps', 'sharepoint', 'status', 'autodiscover', 'mxProvider', 'dmarc'];
+
+  function guessClientFromDomain(domain) {
+    const base = (domain || '').split('.')[0] || '';
+    return base ? base.charAt(0).toUpperCase() + base.slice(1) : '';
+  }
+
+  // Format 1 — a table pasted with tab-separated columns (copied from a
+  // spreadsheet, or exported to CSV from the lookup tool and pasted in).
+  function parseTenantTablePaste(text) {
+    const lines = text.split(/\r?\n/).map(l => l.replace(/\s+$/, '')).filter(l => l.trim().length > 0);
+    if (!lines.length) return [];
+    let headerIdx = -1, colMap = null;
+    for (let i = 0; i < Math.min(lines.length, 6); i++) {
+      const cols = lines[i].split('\t').map(normalizeHeaderText);
+      const matches = cols.filter(c => TENANT_HEADER_ALIASES[c]).length;
+      if (matches >= 3) { headerIdx = i; colMap = cols.map(c => TENANT_HEADER_ALIASES[c] || null); break; }
+    }
+    if (headerIdx < 0) return [];
+    const dataLines = lines.slice(headerIdx + 1);
+    const rows = [];
+    dataLines.forEach(line => {
+      if (/LEGENDA|RESUMO ESTAT|^[^\t]*\bTOTAL\b/i.test(line)) return;
+      const cells = line.split('\t');
+      if (cells.length < 2) return;
+      const row = blankTenantRow();
+      let hasDomain = false;
+      colMap.forEach((field, idx) => {
+        if (!field) return;
+        const raw = (cells[idx] || '').trim();
+        if (field === 'exchange' || field === 'teams' || field === 'apps' || field === 'sharepoint') {
+          row[field] = /✅/.test(raw) || /^(sim|true|x)$/i.test(raw);
+        } else if (field === 'tenantId') {
+          row.tenantId = /não encontrado|nao encontrado/i.test(raw) ? '' : raw;
+        } else if (field === 'status') {
+          // recalculated live below — never trust the pasted text verbatim
+        } else if (field === 'domain') {
+          row.domain = raw; hasDomain = !!raw;
+        } else {
+          row[field] = raw;
+        }
+      });
+      if (!hasDomain) return;
+      if (!row.client) row.client = guessClientFromDomain(row.domain);
+      rows.push(row);
+    });
+    return rows;
+  }
+
+  // Provider name inferred from the MX hostname(s) — the lookup tool gives
+  // the raw MX records, not a friendly provider name, so this fills in the
+  // same short label the partner's own reports use ("Outlook", "Google"…).
+  const TENANT_MX_PROVIDER_PATTERNS = [
+    [/protection\.outlook\.com|outlook\.com/, 'Outlook'],
+    [/aspmx\.l\.google\.com|googlemail\.com|google\.com/, 'Google'],
+    [/pphosted\.com|proofpoint/, 'Proofpoint'],
+    [/mimecast/, 'Mimecast'],
+    [/barracuda/, 'Barracuda'],
+    [/amazonses|amazonaws/, 'Amazon'],
+    [/zoho/, 'Zoho'],
+    [/yahoodns|yahoo/, 'Yahoo'],
+    [/ironport|cisco/, 'Cisco IronPort'],
+    [/telekom/, 'Telekom'],
+    [/uol\.com/, 'UOL'],
+    [/locaweb/, 'Locaweb'],
+    [/terra\.com/, 'Terra']
+  ];
+  function inferMxProvider(mxLines) {
+    const joined = (mxLines || []).join(' ').toLowerCase();
+    if (!joined.trim()) return 'Sem MX';
+    for (const [re, label] of TENANT_MX_PROVIDER_PATTERNS) if (re.test(joined)) return label;
+    const firstHost = (mxLines[0] || '').replace(/^\d+\s+/, '').replace(/\.$/, '').trim();
+    const parts = firstHost.split('.');
+    return parts.length >= 2 ? parts.slice(-2).join('.') : (firstHost || 'Próprio');
+  }
+  function extractDmarcPolicy(dmarcRaw) {
+    if (!dmarcRaw) return 'sem registro';
+    const m = dmarcRaw.match(/p=([a-zA-Z]+)/);
+    return m ? m[1].toLowerCase() : 'sem registro';
+  }
+
+  // Format 2 — the real raw output of tenantidfinder.com / whatismytenantid.com
+  // when checking a domain (or a batch of them), copied and pasted as-is:
+  //   dominio.com
+  //   Tenant ID: <guid ou "Not found">
+  //   Email Configuration
+  //   Autodiscover:
+  //   <valor>
+  //   MX:
+  //   <uma linha por registro>
+  //   SPF:
+  //   <valor>
+  //   DMARC:
+  //   <valor>
+  // …repetindo para cada domínio, sem separador confiável entre um bloco e
+  // o próximo — o próximo "Tenant ID:" é o que marca o início de um novo
+  // domínio, e o nome do domínio é a linha não vazia logo antes dele.
+  function parseTenantBlockPaste(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim());
+    const rows = [];
+    let i = 0;
+    while (i < lines.length) {
+      const m = lines[i].match(/^tenant\s*id\s*:\s*(.*)$/i);
+      if (!m) { i++; continue; }
+      let domain = '';
+      for (let j = i - 1; j >= 0; j--) {
+        if (!lines[j]) continue;
+        if (!/^(email configuration|autodiscover|mx|spf|dmarc)\s*:?/i.test(lines[j])) domain = lines[j];
+        break;
+      }
+      const row = blankTenantRow();
+      row.domain = domain;
+      row.client = guessClientFromDomain(domain);
+      const tenantIdRaw = m[1].trim();
+      row.tenantId = (!tenantIdRaw || /not found|não encontrado|nao encontrado|error|invalid/i.test(tenantIdRaw)) ? '' : tenantIdRaw;
+
+      let j = i + 1, mode = null, autodiscover = '', spf = '', dmarc = '';
+      const mxLines = [];
+      for (; j < lines.length; j++) {
+        const l = lines[j];
+        if (/^tenant\s*id\s*:/i.test(l)) break;
+        if (!l) continue;
+        if (/^email configuration/i.test(l)) { mode = null; continue; }
+        if (/^autodiscover\s*:?/i.test(l)) {
+          const rest = l.replace(/^autodiscover\s*:?/i, '').trim();
+          if (rest) { autodiscover = rest; mode = null; } else mode = 'autodiscover';
+          continue;
+        }
+        if (/^mx\s*:?/i.test(l)) { mode = 'mx'; continue; }
+        if (/^spf\s*:?/i.test(l)) {
+          const rest = l.replace(/^spf\s*:?/i, '').trim();
+          if (rest) { spf = rest; mode = null; } else mode = 'spf';
+          continue;
+        }
+        if (/^dmarc\s*:?/i.test(l)) {
+          const rest = l.replace(/^dmarc\s*:?/i, '').trim();
+          if (rest) { dmarc = rest; mode = null; } else mode = 'dmarc';
+          continue;
+        }
+        if (mode === 'autodiscover') { autodiscover = l; mode = null; }
+        else if (mode === 'mx') { mxLines.push(l); }
+        else if (mode === 'spf') { spf = l; mode = null; }
+        else if (mode === 'dmarc') { dmarc = l; mode = null; }
+      }
+      row.autodiscover = autodiscover || 'None';
+      row.mxProvider = inferMxProvider(mxLines);
+      row.dmarc = extractDmarcPolicy(dmarc);
+      if (row.domain) rows.push(row);
+      i = j;
+    }
+    return rows;
+  }
+
+  // Tries the exact raw lookup-tool format first (it's what the workflow
+  // actually produces), falls back to a tab-separated table paste.
+  function parseTenantPaste(text) {
+    if (/tenant\s*id\s*:/i.test(text)) {
+      const blockRows = parseTenantBlockPaste(text);
+      if (blockRows.length) return blockRows;
+    }
+    return parseTenantTablePaste(text);
+  }
+
+  function renderTenantLegend() {
+    tenantLegendEl.innerHTML = '';
+    [
+      ['green', '🟢 Microsoft Ativo', 'Tenant ID encontrado + MX aponta para Outlook'],
+      ['yellow', '🟡 Tenant Identificado', 'Tenant ID encontrado, mas MX NÃO é Outlook'],
+      ['red', '🔴 Sem Microsoft', 'Tenant ID não encontrado']
+    ].forEach(([key, label, desc]) => {
+      const row = document.createElement('div'); row.className = 'legend-row';
+      const badge = document.createElement('span'); badge.className = 'status-badge ' + key; badge.textContent = label;
+      const descSpan = document.createElement('span'); descSpan.className = 'text-muted'; descSpan.textContent = desc;
+      row.append(badge, descSpan);
+      tenantLegendEl.appendChild(row);
+    });
+  }
+
+  function renderTenantStats() {
+    const rows = state.tenant.rows;
+    const counts = { green: 0, yellow: 0, red: 0 };
+    rows.forEach(r => counts[tenantStatus(r).key]++);
+    const total = rows.length;
+    const pctAtivos = total ? Math.round((counts.green / total) * 100) : 0;
+    const pctIdentificados = total ? Math.round(((counts.green + counts.yellow) / total) * 100) : 0;
+    tenantStatsEl.innerHTML = '';
+    [
+      ['Total de domínios', total, 'gray'], ['Microsoft Ativo', counts.green, 'green'],
+      ['Tenant Identificado', counts.yellow, 'yellow'], ['Sem Microsoft', counts.red, 'red'],
+      ['% Ativos', pctAtivos + '%', 'green'], ['% Identificados', pctIdentificados + '%', 'yellow']
+    ].forEach(([label, val, key]) => {
+      const card = document.createElement('div'); card.className = 'stat-card';
+      card.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value"><span class="status-badge ${key}">${val}</span></div>`;
+      tenantStatsEl.appendChild(card);
+    });
+  }
+
+  function renderTenantTable() {
+    tenantTableEl.innerHTML = '';
+    const table = document.createElement('table'); table.className = 'ata-edit-table';
+    const thead = document.createElement('thead'); const headRow = document.createElement('tr');
+    ['Cliente', 'Domínio', 'Tenant ID', 'Licenças', 'Qtd Licenças', 'Qtd Usuários Ativos', 'Exchange', 'Teams', 'Apps', 'SharePoint', 'Provedor MX', 'Autodiscover', 'Política DMARC', 'Observação', 'Status', ''].forEach(l => {
+      const th = document.createElement('th'); th.textContent = l; headRow.appendChild(th);
+    });
+    thead.appendChild(headRow); table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    state.tenant.rows.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      const badgeSpan = document.createElement('span');
+      function refreshBadge() { const b = tenantStatus(row); badgeSpan.className = 'status-badge ' + b.key; badgeSpan.textContent = b.label; }
+      function textCell(key, opts) {
+        const td = document.createElement('td');
+        const input = document.createElement('input'); input.className = 'input'; input.type = 'text'; input.value = row[key] || '';
+        input.addEventListener('input', () => {
+          row[key] = input.value;
+          if (opts && opts.affectsStatus) refreshBadge();
+          onTenantChange();
+        });
+        td.appendChild(input); return td;
+      }
+      function checkboxCell(key) {
+        const td = document.createElement('td'); td.style.textAlign = 'center';
+        const input = document.createElement('input'); input.type = 'checkbox'; input.checked = !!row[key];
+        input.addEventListener('change', () => { row[key] = input.checked; onTenantChange(); });
+        td.appendChild(input); return td;
+      }
+      tr.appendChild(textCell('client'));
+      tr.appendChild(textCell('domain'));
+      tr.appendChild(textCell('tenantId', { affectsStatus: true }));
+      tr.appendChild(textCell('licenses'));
+      tr.appendChild(textCell('licenseQty'));
+      tr.appendChild(textCell('activeUsers'));
+      tr.appendChild(checkboxCell('exchange'));
+      tr.appendChild(checkboxCell('teams'));
+      tr.appendChild(checkboxCell('apps'));
+      tr.appendChild(checkboxCell('sharepoint'));
+      tr.appendChild(textCell('mxProvider', { affectsStatus: true }));
+      tr.appendChild(textCell('autodiscover'));
+      tr.appendChild(textCell('dmarc'));
+      tr.appendChild(textCell('notes'));
+      const statusTd = document.createElement('td'); refreshBadge(); statusTd.appendChild(badgeSpan); tr.appendChild(statusTd);
+      const actionTd = document.createElement('td');
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'row-remove-btn'; btn.textContent = '✕'; btn.title = 'Remover linha';
+      btn.addEventListener('click', () => { state.tenant.rows.splice(idx, 1); renderTenantTable(); renderTenantStats(); onTenantChange(); });
+      actionTd.appendChild(btn); tr.appendChild(actionTd);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    tenantTableEl.appendChild(table);
+  }
+
+  function setTenantSaveStatus(mode, text) { tenantSaveStatusEl.className = 'save-status' + (mode ? ' ' + mode : ''); tenantSaveStatusTextEl.textContent = text; }
+  function scheduleTenantSave() {
+    if (tenantSaveTimer) clearTimeout(tenantSaveTimer);
+    if (!state.tenant.reportName.trim()) { setTenantSaveStatus('', 'Preencha o nome do relatório/cliente para salvar automaticamente'); return; }
+    if (!db) { setTenantSaveStatus('', 'Salvamento indisponível nesta visualização'); return; }
+    setTenantSaveStatus('busy', 'Salvando…');
+    tenantSaveTimer = setTimeout(doTenantSave, 1200);
+  }
+  function subscribeTenantStatus() { if (!state.tenant.reportName.trim()) setTenantSaveStatus('', 'Preencha o nome do relatório/cliente para salvar automaticamente'); }
+  async function doTenantSave() {
+    const name = state.tenant.reportName.trim();
+    if (!name || !db) return;
+    const docId = state.tenant.docId || ('tenant-' + slugify(name));
+    const body = { type: 'tenant', name: 'Tenant ID ' + name, empresa: name, reportName: name, rows: state.tenant.rows, updatedAt: new Date().toISOString() };
+    try {
+      await db.doc('documents/' + docId).set(body);
+      state.tenant.docId = docId;
+      setTenantSaveStatus('ok', 'Salvo automaticamente');
+    } catch (e) { setTenantSaveStatus('err', 'Não foi possível salvar'); }
+  }
+  function onTenantChange() { scheduleTenantSave(); }
+
+  async function loadTenantDocument(docId) {
+    if (!db) return;
+    const snap = await db.doc('documents/' + docId).get().catch(() => null);
+    if (!snap || !snap.exists) return;
+    const data = snap.data();
+    state.tenant = { docId, reportName: data.reportName || data.empresa || '', rows: data.rows || [] };
+    setActiveTab('tenant');
+    tenantReportNameEl.value = state.tenant.reportName;
+    renderTenantTable(); renderTenantStats();
+    setTenantSaveStatus('ok', 'Aberto — pronto para editar');
+  }
+
+  function buildTenantWorkbook(reportName, rows) {
+    const wb = new window.ExcelJS.Workbook();
+    const ws = wb.addWorksheet((reportName || 'Relatório').slice(0, 31) || 'Relatório');
+    rows = rows || [];
+    const counts = { green: 0, yellow: 0, red: 0 };
+    rows.forEach(r => counts[tenantStatus(r).key]++);
+    const total = rows.length;
+    const pctAtivos = total ? Math.round((counts.green / total) * 100) : 0;
+    const pctIdentificados = total ? Math.round(((counts.green + counts.yellow) / total) * 100) : 0;
+    const FILLS = { blueTitle: 'FF4472C4', headerBlue: 'FF1F4E78', green: 'FFC6EFCE', yellow: 'FFFFEB9C', red: 'FFFFC7CE' };
+    const FONTS = { green: 'FF006100', yellow: 'FF9C6500', red: 'FF9C0006' };
+
+    function titleCell(coord, text) {
+      const c = ws.getCell(coord); c.value = text;
+      c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: FILLS.blueTitle } };
+    }
+    titleCell('A1', '📊 LEGENDA DE STATUS'); titleCell('D1', '📈 RESUMO ESTATÍSTICO'); titleCell('G1', '📊 TOTAL');
+
+    [['🟢 Microsoft Ativo', 'Tenant ID encontrado + MX aponta para Outlook', 'green'],
+     ['🟡 Tenant Identificado', 'Tenant ID encontrado, mas MX NÃO é Outlook', 'yellow'],
+     ['🔴 Sem Microsoft', 'Tenant ID não encontrado', 'red']].forEach((lr, i) => {
+      const r = i + 2;
+      const a = ws.getCell('A' + r); a.value = lr[0]; a.font = { bold: true, color: { argb: FONTS[lr[2]] } }; a.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: FILLS[lr[2]] } };
+      ws.getCell('B' + r).value = lr[1];
+    });
+    [['🟢 Microsoft Ativo:', counts.green, 'green'], ['🟡 Tenant Identificado:', counts.yellow, 'yellow'], ['🔴 Sem Microsoft:', counts.red, 'red']].forEach((sl, i) => {
+      const r = i + 2;
+      const d = ws.getCell('D' + r); d.value = sl[0]; d.font = { bold: true, color: { argb: FONTS[sl[2]] } }; d.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: FILLS[sl[2]] } };
+      ws.getCell('E' + r).value = sl[1];
+    });
+    ws.getCell('G2').value = 'Total Domínios:'; ws.getCell('H2').value = total;
+    ws.getCell('G3').value = '% Ativos:'; ws.getCell('H3').value = pctAtivos + '%';
+    ws.getCell('G4').value = '% Identificados:'; ws.getCell('H4').value = pctIdentificados + '%';
+
+    const headers = ['Cliente', 'Domínio', 'Tenant ID', 'Licenças', 'Qtd Licenças', 'Qtd Usuário Ativos', 'Exchange', 'Teams', 'Apps', 'Sharepoint', 'Status', 'Autodiscover', 'Provedor MX', 'Política DMARC', 'Observação'];
+    const headerRowIdx = 6;
+    headers.forEach((h, i) => {
+      const c = ws.getCell(headerRowIdx, i + 1); c.value = h;
+      c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: FILLS.headerBlue } };
+    });
+    rows.forEach((row, i) => {
+      const st = tenantStatus(row);
+      const r = headerRowIdx + 1 + i;
+      const values = [
+        row.client, row.domain, row.tenantId || 'Não encontrado', row.licenses, row.licenseQty, row.activeUsers,
+        row.exchange ? '✅' : '❌', row.teams ? '✅' : '❌', row.apps ? '✅' : '❌', row.sharepoint ? '✅' : '❌',
+        st.label, row.autodiscover, row.mxProvider, row.dmarc, row.notes
+      ];
+      values.forEach((v, ci) => {
+        const c = ws.getCell(r, ci + 1); c.value = v;
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: FILLS[st.key] } };
+        c.font = { color: { argb: FONTS[st.key] } };
+      });
+    });
+    ws.columns.forEach(col => { col.width = 18; });
+    ws.getColumn(3).width = 38;
+    return wb;
+  }
+
+  async function downloadTenantXlsx() {
+    if (!window.ExcelJS) {
+      tenantDownloadNoteEl.textContent = 'A biblioteca de planilha não carregou. Tente recarregar a página.';
+      tenantDownloadNoteEl.className = 'save-note err'; tenantDownloadNoteEl.hidden = false;
+      return;
+    }
+    tenantDownloadBtnEl.disabled = true; tenantDownloadNoteEl.hidden = true;
+    try {
+      const wb = buildTenantWorkbook(state.tenant.reportName, state.tenant.rows);
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const filename = `Relatorio-Tenant-${slugify(state.tenant.reportName || 'relatorio')}.xlsx`;
+      await saveGeneratedFile(blob, filename, tenantDownloadNoteEl);
+    } catch (e) {
+      tenantDownloadNoteEl.textContent = 'Não foi possível gerar a planilha agora. Tente novamente.';
+      tenantDownloadNoteEl.className = 'save-note err'; tenantDownloadNoteEl.hidden = false;
+    } finally {
+      tenantDownloadBtnEl.disabled = false;
+    }
+  }
+
+  async function downloadSavedTenantXlsx(docId, buttonEl) {
+    const doc = state.savedDocs.find(d => d.id === docId);
+    if (!doc || !window.ExcelJS) return;
+    const originalLabel = buttonEl.textContent;
+    buttonEl.disabled = true; buttonEl.textContent = 'Gerando planilha…';
+    try {
+      const wb = buildTenantWorkbook(doc.reportName || doc.empresa, doc.rows || []);
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const filename = `Relatorio-Tenant-${slugify(doc.reportName || doc.empresa || 'relatorio')}.xlsx`;
+      await saveGeneratedFile(blob, filename, null);
+    } finally {
+      buttonEl.disabled = false; buttonEl.textContent = originalLabel;
+    }
+  }
+
+  tenantReportNameEl.addEventListener('input', () => { state.tenant.reportName = tenantReportNameEl.value; onTenantChange(); });
+  tenantProcessBtnEl.addEventListener('click', () => {
+    const parsed = parseTenantPaste(tenantPasteBoxEl.value);
+    if (!parsed.length) {
+      tenantPasteNoteEl.textContent = 'Não consegui identificar nenhuma linha com domínio nesse texto colado. Confira se copiou a tabela inteira (colunas separadas por tab).';
+      tenantPasteNoteEl.className = 'save-note err'; tenantPasteNoteEl.hidden = false;
+      return;
+    }
+    state.tenant.rows = state.tenant.rows.concat(parsed);
+    tenantPasteBoxEl.value = '';
+    tenantPasteNoteEl.textContent = `${parsed.length} domínio(s) adicionado(s).`;
+    tenantPasteNoteEl.className = 'save-note ok'; tenantPasteNoteEl.hidden = false;
+    renderTenantTable(); renderTenantStats(); onTenantChange();
+  });
+  tenantAddBtnEl.addEventListener('click', () => { state.tenant.rows.push(blankTenantRow()); renderTenantTable(); renderTenantStats(); onTenantChange(); });
+  tenantCopyDomainsBtnEl.addEventListener('click', async () => {
+    const list = state.tenant.rows.map(r => r.domain).filter(Boolean).join('\n');
+    try {
+      await navigator.clipboard.writeText(list);
+      tenantPasteNoteEl.textContent = 'Lista de domínios copiada.'; tenantPasteNoteEl.className = 'save-note ok'; tenantPasteNoteEl.hidden = false;
+    } catch (e) {
+      tenantPasteNoteEl.textContent = 'Não foi possível copiar automaticamente — selecione manualmente.'; tenantPasteNoteEl.className = 'save-note err'; tenantPasteNoteEl.hidden = false;
+    }
+  });
+  tenantDownloadBtnEl.addEventListener('click', downloadTenantXlsx);
+
+  renderTenantLegend();
+  renderTenantStats();
+  renderTenantTable();
 })();
 </script>
