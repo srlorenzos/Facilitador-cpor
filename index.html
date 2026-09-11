@@ -2301,6 +2301,98 @@ Tenant ID: ...
   }
 
   // ————————————————————————————————————————————————————————————
+  // Backend (Azure) — when the app isn't running inside the Claude
+  // Artifacts runtime (no `window.claude`), `db`/`assets` are wired to
+  // our own Functions API (Cosmos DB + Blob Storage) instead, behind the
+  // exact same interface the rest of the app already expects.
+  // ————————————————————————————————————————————————————————————
+  function makeAzureDb(apiBase) {
+    function wrapDoc(path) {
+      const [collection, id] = path.split('/');
+      const url = (collection === 'app' && id === 'settings')
+        ? apiBase + '/settings'
+        : apiBase + '/documents/' + encodeURIComponent(id);
+      const docApi = {
+        async get() {
+          const res = await fetch(url);
+          if (res.status === 404) return { exists: false, data: () => undefined };
+          if (!res.ok) throw new Error('Falha ao carregar documento');
+          const body = await res.json();
+          return { exists: !!body.exists, data: () => body.data };
+        },
+        async set(data) {
+          const res = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          if (!res.ok) throw new Error('Falha ao salvar documento');
+        },
+        async delete() {
+          const res = await fetch(url, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Falha ao excluir documento');
+        },
+        onSnapshot(onNext, onError) {
+          let stopped = false;
+          const poll = async () => {
+            try {
+              const snap = await docApi.get();
+              if (!stopped) onNext(snap);
+            } catch (e) { if (!stopped && onError) onError(e); }
+          };
+          poll();
+          const timer = setInterval(poll, 20000);
+          return () => { stopped = true; clearInterval(timer); };
+        }
+      };
+      return docApi;
+    }
+    function wrapCollection(name) {
+      const collApi = {
+        orderBy() { return collApi; },
+        limit() { return collApi; },
+        onSnapshot(onNext, onError) {
+          let stopped = false;
+          const poll = async () => {
+            try {
+              const res = await fetch(apiBase + '/' + name);
+              if (!res.ok) throw new Error('Falha ao listar documentos');
+              const body = await res.json();
+              const docs = (body.docs || []).map(d => ({ id: d.id, data: () => d }));
+              if (!stopped) onNext({ docs });
+            } catch (e) { if (!stopped && onError) onError(e); }
+          };
+          poll();
+          const timer = setInterval(poll, 20000);
+          return () => { stopped = true; clearInterval(timer); };
+        }
+      };
+      return collApi;
+    }
+    return { doc: wrapDoc, collection: wrapCollection };
+  }
+
+  function makeAzureAssets(apiBase) {
+    return {
+      async upload(file) {
+        const res = await fetch(apiBase + '/assets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+            'X-File-Name': encodeURIComponent(file.name || 'upload')
+          },
+          body: file
+        });
+        if (!res.ok) throw new Error('Falha no upload');
+        return res.json();
+      },
+      async delete(id) {
+        await fetch(apiBase + '/assets/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {});
+      }
+    };
+  }
+
+  // ————————————————————————————————————————————————————————————
   // Wiring
   // ————————————————————————————————————————————————————————————
   empresaEl.addEventListener('input', () => { state.empresa = empresaEl.value; renderPreview(); scheduleSave(); });
@@ -2411,11 +2503,21 @@ Tenant ID: ...
 
   (async () => {
     try {
-      [db, assets, sample] = await Promise.all([
-        window.claude ? window.claude.use('db') : Promise.resolve(null),
-        window.claude ? window.claude.use('assets') : Promise.resolve(null),
-        window.claude ? window.claude.use('sample') : Promise.resolve(null)
-      ]);
+      if (window.claude) {
+        [db, assets, sample] = await Promise.all([
+          window.claude.use('db'),
+          window.claude.use('assets'),
+          window.claude.use('sample')
+        ]);
+      } else {
+        // Hospedagem própria (Azure Static Web Apps): db/assets falam com
+        // a API em /api (Cosmos DB + Blob Storage). Sem identificação
+        // automática de imagens por IA nessa forma de hospedagem — a
+        // classificação manual (já suportada) cobre isso.
+        db = makeAzureDb('/api');
+        assets = makeAzureAssets('/api');
+        sample = null;
+      }
     } catch (e) {}
 
     if (sample) {

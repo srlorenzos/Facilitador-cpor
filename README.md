@@ -22,14 +22,16 @@ Tema (claro/escuro/automático), cor de destaque, tamanho de fonte, densidade da
 
 ## Como usar
 
-A aplicação é um único arquivo estático (`index.html`, HTML/CSS/JS sem dependências de build). Duas formas de rodar:
+O front-end é um único arquivo estático (`index.html`, HTML/CSS/JS sem dependências de build). Formas de rodar:
 
-1. **Localmente**: baixe `index.html` e abra no navegador.
-2. **Publicado como site estático**: sirva `index.html` a partir de qualquer hospedagem de arquivos estáticos (GitHub Pages, Netlify, Vercel, um servidor próprio, etc.). Não há passo de build — o conteúdo do repositório já é o que vai para produção.
+1. **Localmente**: baixe `index.html` e abra no navegador — modo somente-local (preferências no `localStorage` do navegador, sem sincronizar entre dispositivos).
+2. **Publicado como site estático simples** (GitHub Pages, Netlify, Vercel, etc.): mesma limitação do modo local — não há passo de build, mas também não há banco de dados por trás.
+3. **Publicado no Azure (produção)**: Azure Static Web Apps servindo `index.html` + a API em [`api/`](api/) (Azure Functions), com Cosmos DB (histórico de documentos e configurações da equipe) e Blob Storage (imagens anexadas). Nesse modo o salvamento é automático e sincronizado entre dispositivos — é o que fica publicado a partir deste repositório via GitHub Actions a cada push na branch principal. Veja [`api/README.md`](api/README.md) para as application settings necessárias.
 
-Ao rodar como página estática comum, todos os recursos de geração de documentos, consulta de Tenant ID e exportação (PDF/planilha) funcionam normalmente. Preferências de tema e configurações padrão ficam salvas no navegador local. Sincronização de histórico entre dispositivos e reconhecimento visual de imagens (quando o nome do arquivo não é suficiente para o CPOR) dependem de um backend compatível e não estão disponíveis nessa forma de hospedagem.
+A identificação automática por IA de qual seção cada print pertence é específica do runtime de Claude Artifacts (onde este projeto também roda, usando os mesmos `db`/`assets`) e não está disponível na hospedagem Azure — nela, a classificação é manual pelo seletor de cada imagem.
 
 ## Estrutura do repositório
 
-- `index.html` — a aplicação completa.
+- `index.html` — a aplicação completa (front-end).
+- `api/` — backend Azure Functions (Cosmos DB + Blob Storage) usado na publicação no Azure.
 - `project/`, `chats/` — material do protótipo de design original que deu origem a este projeto, mantido como histórico.
