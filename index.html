@@ -1,0 +1,2262 @@
+<title>Facilitador de CPOR</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<style>
+:root {
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-text: #201e1d;
+  --color-accent: #ec3013;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-800: #444141;
+
+  --color-accent-100: #fff2ef;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-good: #1f7a4d;
+  --color-good-100: #eaf6ef;
+
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 800;
+  --font-body: "Archivo", system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+}
+
+/* App-level dark theme (a Configurações setting, independent of the
+   Artifact viewer's own theme) — redefines the same tokens, so every
+   component that already reads var(--color-*) adapts automatically.
+   The official document replicas (.poe-page, printed-paper look) and
+   nothing else are deliberately excluded: a document stays on white
+   paper regardless of the app's theme. */
+body.theme-dark {
+  --color-bg: #1c1b1a;
+  --color-surface: #2a2827;
+  --color-text: #f2f0ef;
+  --color-accent: #ff6a4d;
+  --color-divider: color-mix(in srgb, #f2f0ef 30%, transparent);
+
+  --color-neutral-100: #383534;
+  --color-neutral-800: #d7d3d3;
+
+  --color-accent-100: color-mix(in srgb, #ec3013 22%, #1c1b1a);
+  --color-accent-600: #ff8266;
+  --color-accent-700: #ffa088;
+  --color-good: #4fc98a;
+  --color-good-100: color-mix(in srgb, #1f7a4d 30%, #1c1b1a);
+
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #000 45%, transparent);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--space-2);
+  text-wrap: balance;
+}
+h1 { font-size: 32px; }
+h2 { font-size: 22px; }
+h3 { font-size: 18px; }
+h4 { font-size: 16px; }
+p { margin: 0 0 var(--space-3); }
+
+.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
+.grayscale { filter: grayscale(1) contrast(1.08); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+/* — shell / nav — */
+.nav {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 2px solid var(--color-divider);
+  flex-wrap: wrap;
+}
+.nav-brand { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 18px; margin-right: auto; }
+.nav-status { font-size: 11px; display: flex; align-items: center; gap: 6px; }
+.nav-status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-divider); }
+.nav-status.online .dot { background: var(--color-good); }
+
+.tabbar { display: flex; gap: 2px; padding: 0 var(--space-4); border-bottom: 2px solid var(--color-divider); overflow-x: auto; }
+.tab-btn {
+  font-family: var(--font-heading); font-weight: 600; font-size: 13px; cursor: pointer;
+  background: none; border: none; padding: var(--space-3) var(--space-3); color: var(--color-text);
+  border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap;
+}
+.tab-btn:hover { color: var(--color-accent); }
+.tab-btn.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+
+.page { max-width: 1080px; margin: 0 auto; padding: var(--space-6) var(--space-4) calc(var(--space-8) * 2); }
+.page-lede { font-size: 14px; max-width: 620px; }
+.hr { height: 2px; border: 0; margin: var(--space-4) 0; background: var(--color-divider); }
+
+.workspace { display: flex; gap: var(--space-6); margin-top: var(--space-4); align-items: flex-start; flex-wrap: wrap; }
+.builder-col { flex: 1 1 420px; min-width: 0; }
+.preview-col { flex: 1 1 420px; min-width: 0; position: sticky; top: var(--space-4); }
+
+/* — form fields — */
+.field > label { display: block; font-size: 12px; margin-bottom: 5px; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+.input {
+  width: 100%; min-height: 36px; padding: 6px 10px; font: inherit; font-size: 14px; color: var(--color-text);
+  caret-color: var(--color-accent); background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+textarea.input { min-height: 78px; resize: vertical; font-family: inherit; }
+select.input { min-height: 30px; padding: 3px 6px; font-size: 12px; }
+
+/* — dropzone — */
+.dropzone {
+  border: 2px dashed var(--color-divider); padding: var(--space-6) var(--space-4);
+  text-align: center; cursor: pointer; background: var(--color-surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone svg { margin: 0 auto var(--space-2); color: var(--color-accent); display: block; }
+.dropzone-title { font-size: 14px; font-weight: 600; }
+.dropzone-hint { font-size: 12px; margin-top: 4px; }
+.dropzone.drag-over { border-color: var(--color-accent); background: var(--color-accent-100); }
+.dropzone-compact { padding: var(--space-3); }
+.dropzone-compact svg { width: 18px; height: 18px; margin-bottom: 2px; }
+.dropzone-compact .dropzone-title { font-size: 11px; }
+
+/* — staging (auto-classifying) — */
+.staging { margin-top: var(--space-4); }
+.staging-row { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
+.staging-item { position: relative; width: 64px; }
+.staging-thumb { width: 64px; height: 64px; overflow: hidden; background: var(--color-surface); position: relative; }
+.staging-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.5; }
+.staging-thumb .spinner { position: absolute; inset: 0; display: grid; place-items: center; color: var(--color-accent); }
+
+/* — photo grid — */
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: var(--space-2); margin-top: var(--space-3); }
+.photo-cell { position: relative; display: flex; flex-direction: column; gap: 3px; }
+.photo-thumb { aspect-ratio: 1; overflow: hidden; background: var(--color-surface); }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-remove {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  background: var(--color-bg); border: 1px solid var(--color-divider);
+  display: inline-flex; align-items: center; justify-content: center; padding: 0; cursor: pointer;
+}
+.photo-move { width: 100%; }
+
+/* — section cards — */
+.section-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--space-3); margin-top: var(--space-3); }
+.section-card { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--color-surface); }
+.section-card.is-full { outline: 1px solid var(--color-good); }
+.section-card-title { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.section-card-title h4 { margin: 0; }
+.section-card-count { font-size: 10px; }
+.section-card-hint { font-size: 11px; margin: 0; }
+
+/* — tabs bar (secondary, generic) — */
+.tab-panel[hidden] { display: none; }
+
+/* — saved docs list — */
+.saved-doc-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
+.saved-doc-row {
+  display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3);
+  background: var(--color-surface); flex-wrap: wrap;
+}
+.saved-doc-row b { font-family: var(--font-heading); }
+.saved-doc-row time { font-size: 12px; margin-left: auto; }
+.saved-doc-row .actions { display: flex; gap: 6px; }
+.saved-docs-empty { font-size: 13px; margin-top: var(--space-3); }
+
+/* — stub tab — */
+.stub-card {
+  margin-top: var(--space-4); padding: var(--space-8) var(--space-4); text-align: center;
+  background: var(--color-surface); color: color-mix(in srgb, var(--color-text) 60%, transparent);
+}
+
+/* — footer / status row — */
+.status-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-4); }
+.tag {
+  display: inline-flex; align-items: center; font-size: 11px; letter-spacing: 0.02em; padding: 3px 10px;
+  border-radius: calc(var(--radius-md) * 0.75); background: var(--color-neutral-100); color: var(--color-neutral-800);
+}
+.save-status { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.save-status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-divider); }
+.save-status.ok .dot { background: var(--color-good); }
+.save-status.err .dot { background: var(--color-accent); }
+.save-status.busy .dot { background: var(--color-accent); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }
+
+/* — settings: segmented control + checkbox — */
+.seg { display: inline-flex; flex-wrap: wrap; overflow: hidden; border: 1px solid var(--color-divider); border-radius: var(--radius-md); margin-top: var(--space-3); }
+.seg-opt { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+.seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
+.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.checkbox { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; font-size: 14px; }
+.checkbox input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.checkbox .box { width: 16px; height: 16px; flex: none; position: relative; border: 1.5px solid var(--color-divider); background: var(--color-bg); }
+.checkbox:hover .box { border-color: var(--color-accent); }
+.checkbox input:checked + .box { border-color: var(--color-accent); background: var(--color-accent); }
+.checkbox input:checked + .box::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid var(--color-bg); border-width: 0 2px 2px 0; transform: rotate(40deg); }
+.checkbox input:focus-visible + .box { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* — buttons — */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 13px; line-height: 1.2;
+  color: var(--color-text); background: transparent; border: 1px solid transparent;
+  padding: var(--space-2) calc(var(--space-3) * 1.2); border-radius: var(--radius-md);
+}
+.btn svg { display: block; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--color-accent); color: var(--color-bg); }
+.btn-primary:hover:not(:disabled) { background: var(--color-accent-600); }
+.btn-primary:active:not(:disabled) { background: var(--color-accent-700); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover:not(:disabled) { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-sm { font-size: 12px; padding: 5px 10px; }
+.spin { animation: spin 0.8s linear infinite; }
+
+/* — email preview — */
+.email-preview-card { background: var(--color-surface); }
+.email-preview-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-3) var(--space-3) 0; }
+.email-preview { overflow-y: auto; max-height: 70vh; background: var(--color-bg); border: 1px solid var(--color-divider); margin: var(--space-3); padding: var(--space-4); }
+.email-preview-subject { font-size: 16px; margin: 0 0 var(--space-3); }
+.email-preview-subject-box {
+  margin: var(--space-2) var(--space-3) var(--space-3); padding: var(--space-2) var(--space-3);
+  background: var(--color-bg); border: 1px solid var(--color-divider); font-weight: 600; font-size: 14px;
+}
+.email-preview-body { font-size: 14px; }
+.email-preview-heading { font-family: var(--font-heading); font-weight: var(--font-heading-weight); margin-top: var(--space-4); margin-bottom: var(--space-2); font-size: 14px; }
+.email-preview-empty { font-size: 12px; font-style: italic; opacity: 0.7; }
+.copy-note { font-size: 12px; padding: 0 var(--space-3) var(--space-3); }
+.copy-note.ok { color: var(--color-good); }
+.copy-note.err { color: var(--color-accent); }
+.save-note { font-size: 12px; }
+.save-note.ok { color: var(--color-good); }
+.save-note.err { color: var(--color-accent); }
+
+/* ————————————————————————————————————————————————————————————
+   Criar Engagement POE
+   ———————————————————————————————————————————————————————————— */
+.poe-field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); margin-top: var(--space-3); }
+.poe-checklist { display: flex; flex-direction: column; gap: 2px; margin-top: var(--space-3); border: 1px solid var(--color-divider); max-height: 420px; overflow-y: auto; }
+.poe-checklist-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: 6px var(--space-3); border-bottom: 1px solid var(--color-divider); font-size: 13px; }
+.poe-checklist-row:last-child { border-bottom: none; }
+.poe-checklist-row.checked { background: var(--color-accent-100); }
+.poe-workload-name { flex: 1 1 220px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+.poe-activity-group { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.poe-activity-opt { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; }
+.poe-activity-other { width: 140px; }
+.poe-check { position: relative; width: 14px; height: 14px; flex: none; border: 1.5px solid var(--color-divider); background: var(--color-bg); }
+input:checked + .poe-check, .poe-check.on { border-color: var(--color-accent); background: var(--color-accent); }
+input:checked + .poe-check::after, .poe-check.on::after {
+  content: ''; position: absolute; left: 3px; top: 0; width: 4px; height: 8px;
+  border: solid var(--color-bg); border-width: 0 2px 2px 0; transform: rotate(40deg);
+}
+.poe-summary { font-size: 12px; margin-top: 6px; }
+.poe-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; margin-top: var(--space-4); }
+.poe-collapsible-head { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: var(--space-6); }
+.poe-collapsible-head svg { transition: transform 0.15s; }
+.poe-collapsible-head.open svg { transform: rotate(90deg); }
+
+/* — the official-template replica (used for the live preview AND, unscaled, for PDF capture) — */
+.poe-doc-scroller { margin-top: var(--space-4); overflow: auto; max-height: 640px; background: var(--color-neutral-100); padding: var(--space-4); }
+.poe-doc { background: #fff; color: #000; }
+.poe-page {
+  width: 816px; min-height: 1056px; margin: 0 auto var(--space-4); background: #fff; color: #000;
+  padding: 46px 48px 60px; box-shadow: var(--shadow-md); position: relative;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: 11px; line-height: 1.35;
+}
+.poe-page:last-child { margin-bottom: 0; }
+.poe-logo { margin-bottom: 10px; }
+.poe-logo img { height: 22px; width: auto; display: block; }
+.poe-title-bar { background: #000; color: #fff; font-weight: 700; font-size: 13px; text-align: center; padding: 8px 10px; border: 1px solid #000; }
+.poe-intro-box { border: 1px solid #000; border-top: none; padding: 8px 10px; font-size: 9.5px; }
+.poe-intro-box p { margin: 0 0 6px; }
+.poe-intro-box a { color: #000; }
+.poe-instructions-bar { background: #000; color: #fff; font-weight: 700; font-size: 9.5px; padding: 4px 10px; border: 1px solid #000; border-top: none; }
+.poe-instructions-box { border: 1px solid #000; border-top: none; padding: 6px 10px; font-size: 9.5px; }
+.poe-instructions-box p { margin: 0 0 4px; }
+.poe-section-bar { background: #000; color: #fff; font-weight: 700; font-size: 11px; padding: 6px 10px; border: 1px solid #000; margin-top: 10px; }
+.poe-section-bar.followed { border-bottom: none; }
+.poe-section-body { border: 1px solid #000; border-top: none; padding: 8px 10px; font-size: 9.5px; }
+.poe-row { display: flex; border: 1px solid #000; border-top: none; }
+.poe-row.first { border-top: 1px solid #000; margin-top: 10px; }
+.poe-row .name-col { flex: 0 0 46%; padding: 4px 8px; border-right: 1px solid #000; display: flex; align-items: center; gap: 6px; font-size: 10px; }
+.poe-row .activity-col { flex: 1; padding: 4px 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 9.5px; }
+.poe-box { position: relative; width: 10px; height: 10px; flex: none; border: 1px solid #000; display: inline-block; }
+.poe-box.on::after { content: '✓'; position: absolute; left: 0.5px; top: -3px; font-size: 10px; font-weight: 700; }
+.poe-field-row { display: flex; border: 1px solid #000; border-top: none; }
+.poe-field-row .label-col { flex: 0 0 40%; padding: 5px 10px; background: #fff; color: #000; font-weight: 700; font-size: 9.5px; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid #000; }
+.poe-field-row .value-col { flex: 1; padding: 5px 10px; font-size: 10px; display: flex; align-items: center; justify-content: center; text-align: center; background: #E7E6E6; color: #808080; }
+.poe-field-row.first { border-top: 1px solid #000; }
+.poe-scope-heading { font-weight: 700; margin-bottom: 2px; }
+.poe-scope-list { margin: 0; padding-left: 16px; }
+.poe-scope-list li { margin-bottom: 2px; }
+.poe-scope-row { display: flex; border: 1px solid #000; border-top: none; }
+.poe-scope-row .instruction-col { flex: 0 0 33%; padding: 8px; border-right: 1px solid #000; font-weight: 700; font-size: 9.5px; }
+.poe-scope-row .content-col { flex: 1; padding: 8px; font-size: 9.5px; }
+.poe-highlight { background: #FFFF00; font-weight: 700; padding: 0; }
+.poe-qa-row { display: flex; border: 1px solid #000; border-top: none; min-height: 70px; }
+.poe-qa-row .q-col { flex: 0 0 33%; padding: 8px; border-right: 1px solid #000; font-size: 9.5px; }
+.poe-qa-row .a-col { flex: 1; padding: 8px; font-size: 9.5px; }
+.poe-gantt-img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+.poe-sign-line { border-top: 1px solid #000; margin-top: 26px; padding-top: 3px; display: flex; justify-content: space-between; font-size: 9px; }
+.poe-footer { position: absolute; left: 0; right: 0; bottom: 20px; text-align: center; font-size: 8.5px; color: #333; }
+.poe-list-cols { display: flex; border: 1px solid #000; border-top: none; }
+.poe-list-cols ul { flex: 1; margin: 0; padding: 6px 8px 6px 22px; font-size: 9px; border-left: 1px solid #000; }
+.poe-list-cols ul:first-child { border-left: none; }
+</style>
+
+<div class="nav">
+  <div class="nav-brand">Facilitador de CPOR</div>
+  <div id="nav-status" class="nav-status"><span class="dot"></span><span id="nav-status-text">Verificando armazenamento…</span></div>
+</div>
+
+<div class="tabbar" role="tablist">
+  <button class="tab-btn active" data-tab="criar-cpor" role="tab">Criar CPOR</button>
+  <button class="tab-btn" data-tab="engagement-poe" role="tab">Criar Engagement POE</button>
+  <button class="tab-btn" data-tab="salvos" role="tab">Documentos salvos</button>
+  <button class="tab-btn" data-tab="config" role="tab">Configurações</button>
+</div>
+
+<div class="page">
+
+  <!-- Criar CPOR -->
+  <section id="tab-criar-cpor" class="tab-panel">
+    <h1>Criar CPOR</h1>
+    <p class="text-muted page-lede">Digite o nome da empresa e jogue todas as capturas de tela — cada uma vai sozinha para a seção certa. O e-mail é montado ao vivo à direita e salvo automaticamente.</p>
+
+    <div class="workspace">
+      <div class="builder-col">
+        <div class="field">
+          <label for="empresa-input">Nome da empresa</label>
+          <input id="empresa-input" class="input" type="text" placeholder="Ex.: AMCOM">
+        </div>
+
+        <h3 style="margin-top:var(--space-6);">Evidências</h3>
+        <p class="text-muted" style="font-size:13px;">Jogue todas as capturas de tela aqui de uma vez — identificamos o produto de cada uma e colocamos na seção certa. Errou uma? Mova pelo seletor abaixo da miniatura.</p>
+
+        <div id="bulk-dropzone" class="dropzone" tabindex="0" role="button" aria-label="Selecionar evidências">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          </svg>
+          <div class="dropzone-title">Jogue todas as evidências aqui</div>
+          <div class="text-muted dropzone-hint" id="bulk-dropzone-hint">JPG ou PNG — identificação automática por seção</div>
+        </div>
+        <input id="bulk-file-input" type="file" accept="image/*" multiple style="display:none;">
+        <div id="bulk-status" class="save-note err" style="font-size:12px;margin-top:6px;" hidden></div>
+
+        <div id="staging" class="staging" hidden>
+          <p class="text-muted" style="font-size:12px;margin-bottom:0;">Identificando a seção de cada imagem…</p>
+          <div id="staging-row" class="staging-row"></div>
+        </div>
+
+        <div id="section-cards" class="section-cards"></div>
+
+        <div class="status-row">
+          <span id="file-count" class="tag">Nenhuma evidência ainda</span>
+          <span id="save-status" class="save-status"><span class="dot"></span><span id="save-status-text">—</span></span>
+        </div>
+      </div>
+
+      <div class="preview-col">
+        <div class="email-preview-card">
+          <div class="email-preview-head">
+            <h3 style="margin:0;">Assunto</h3>
+            <button id="copy-subject-btn" class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="1"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copiar assunto
+            </button>
+          </div>
+          <div id="email-subject" class="email-preview-subject-box"></div>
+
+          <div class="email-preview-head">
+            <h3 style="margin:0;">Corpo do e-mail (ao vivo)</h3>
+            <button id="copy-btn" class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="1"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copiar corpo do e-mail
+            </button>
+          </div>
+          <div id="email-preview" class="email-preview"></div>
+          <div id="copy-note" class="copy-note" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Criar Engagement POE -->
+  <section id="tab-engagement-poe" class="tab-panel" hidden>
+    <h1>Criar Engagement POE</h1>
+    <p class="text-muted page-lede">Preencha os dados do projeto e selecione os workloads utilizados — o documento oficial (POE / CPOR do Partner Center) é montado ao vivo, pronto para baixar em PDF.</p>
+
+    <h3 style="margin-top:var(--space-6);">Dados do parceiro e do cliente</h3>
+    <hr class="hr">
+    <div class="poe-field-grid">
+      <div class="field">
+        <label for="poe-partner">Empresa parceira (quem fez o projeto)</label>
+        <input id="poe-partner" class="input" type="text" placeholder="Ex.: Selbetti">
+      </div>
+      <div class="field">
+        <label for="poe-customer">Empresa cliente (quem recebe o CPOR)</label>
+        <input id="poe-customer" class="input" type="text" placeholder="Ex.: Berkan">
+      </div>
+      <div class="field">
+        <label for="poe-signatory-name">Nome do responsável do cliente</label>
+        <input id="poe-signatory-name" class="input" type="text" placeholder="Ex.: Darllyson da Silva Souza">
+      </div>
+      <div class="field">
+        <label for="poe-signatory-role">Cargo do responsável</label>
+        <input id="poe-signatory-role" class="input" type="text" placeholder="Ex.: GERENTE">
+      </div>
+      <div class="field">
+        <label for="poe-start-date">Início do projeto</label>
+        <input id="poe-start-date" class="input" type="date">
+      </div>
+      <div class="field">
+        <label for="poe-end-date">Fim do projeto</label>
+        <input id="poe-end-date" class="input" type="date">
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Licenças</h3>
+    <hr class="hr">
+    <p class="text-muted" style="font-size:13px;">Preencha uma vez — o número entra automaticamente nos dois lugares do texto, e o nome da licença logo depois dele.</p>
+    <div class="poe-field-grid">
+      <div class="field">
+        <label for="poe-license-qty">Quantidade de contas/licenças</label>
+        <input id="poe-license-qty" class="input" type="number" min="0" placeholder="Ex.: 104">
+      </div>
+      <div class="field">
+        <label for="poe-license-name">Licença(s) / workload migrado</label>
+        <input id="poe-license-name" class="input" type="text" placeholder="Ex.: Microsoft 365 Business Standard e Business Basic, ou Exchange Online">
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Workloads utilizados (Seção 1)</h3>
+    <hr class="hr">
+    <p class="text-muted" style="font-size:13px;">Marque de 1 a todos os workloads que fizeram parte deste projeto e o tipo de atividade de cada um.</p>
+    <div id="poe-checklist" class="poe-checklist"></div>
+    <div id="poe-checklist-summary" class="poe-summary text-muted"></div>
+
+    <h3 style="margin-top:var(--space-6);">Descrição do escopo (Seção 2)</h3>
+    <hr class="hr">
+    <div class="field">
+      <label for="poe-scope-text">Texto (gerado automaticamente — pode editar à vontade)</label>
+      <textarea id="poe-scope-text" class="input" rows="12"></textarea>
+    </div>
+    <button id="poe-scope-reset-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">Regenerar a partir do modelo padrão</button>
+
+    <div id="poe-bizapps-head" class="poe-collapsible-head">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+      <h3 style="margin:0;">Business Applications (página 3) — opcional</h3>
+    </div>
+    <div id="poe-bizapps-body" hidden>
+      <p class="text-muted" style="font-size:13px;">Deixe em branco se este projeto não envolveu Business Applications — a página é gerada mesmo assim, só que sem esses campos preenchidos (como nos seus modelos).</p>
+      <div class="poe-field-grid">
+        <div class="field">
+          <label for="poe-biz-domain">Customer Domain Name</label>
+          <input id="poe-biz-domain" class="input" type="text" placeholder="Ex.: berkan.com.br">
+        </div>
+        <div class="field">
+          <label for="poe-biz-tenant">Customer Tenant ID</label>
+          <input id="poe-biz-tenant" class="input" type="text">
+        </div>
+        <div class="field">
+          <label for="poe-biz-project">Project Name (opcional)</label>
+          <input id="poe-biz-project" class="input" type="text">
+        </div>
+        <div class="field">
+          <label for="poe-biz-workloads">Workload(s) e subscription ID(s)</label>
+          <input id="poe-biz-workloads" class="input" type="text">
+        </div>
+      </div>
+      <div class="field" style="margin-top:var(--space-3);">
+        <label for="poe-biz-need">Necessidade/benefício de negócio do cliente</label>
+        <textarea id="poe-biz-need" class="input" rows="2"></textarea>
+      </div>
+      <div class="field" style="margin-top:var(--space-3);">
+        <label for="poe-biz-activities">Atividades realizadas (pré ou pós-venda)</label>
+        <textarea id="poe-biz-activities" class="input" rows="2"></textarea>
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Pré-visualização do documento oficial</h3>
+    <hr class="hr">
+    <div id="poe-doc-scroller" class="poe-doc-scroller">
+      <div id="poe-doc" class="poe-doc"></div>
+    </div>
+
+    <div class="poe-actions">
+      <span id="poe-save-status" class="save-status"><span class="dot"></span><span id="poe-save-status-text">—</span></span>
+      <button id="poe-download-btn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        Baixar PDF
+      </button>
+    </div>
+    <div id="poe-download-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+  </section>
+
+  <!-- Documentos salvos -->
+  <section id="tab-salvos" class="tab-panel" hidden>
+    <h1>Documentos salvos</h1>
+    <p class="text-muted page-lede">CPORs (e-mail) e Engagement POE são salvos automaticamente por empresa enquanto você edita. Abra para continuar de onde parou.</p>
+    <div id="saved-doc-list" class="saved-doc-list"></div>
+    <div id="saved-doc-empty" class="saved-docs-empty text-muted">Nenhum documento salvo ainda.</div>
+  </section>
+
+  <!-- Configurações -->
+  <section id="tab-config" class="tab-panel" hidden>
+    <h1>Configurações</h1>
+
+    <h3>Aparência</h3>
+    <hr class="hr">
+    <p class="text-muted" style="font-size:13px;">Vale só para este app — não muda o tema do site onde ele está hospedado.</p>
+    <div id="theme-switch" class="seg">
+      <label class="seg-opt"><input type="radio" name="theme" value="light"><span>Claro</span></label>
+      <label class="seg-opt"><input type="radio" name="theme" value="dark"><span>Escuro</span></label>
+      <label class="seg-opt"><input type="radio" name="theme" value="system"><span>Sistema</span></label>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Padrões do Engagement POE</h3>
+    <hr class="hr">
+    <p class="text-muted" style="font-size:13px;">Preenche automaticamente todo novo POE — não altera os que já foram salvos.</p>
+    <div class="poe-field-grid">
+      <div class="field">
+        <label for="default-partner-input">Empresa parceira padrão</label>
+        <input id="default-partner-input" class="input" type="text" placeholder="Ex.: Selbetti">
+      </div>
+      <div class="field">
+        <label for="default-role-input">Cargo padrão do responsável</label>
+        <input id="default-role-input" class="input" type="text" placeholder="Ex.: GERENTE">
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Mensagem padrão do CPOR</h3>
+    <hr class="hr">
+    <p class="text-muted" style="font-size:13px;">Use <code>{{empresa}}</code> onde o nome da empresa deve entrar.</p>
+    <div class="field">
+      <label for="intro-template-input">Texto de abertura</label>
+      <textarea id="intro-template-input" class="input" rows="6"></textarea>
+    </div>
+
+    <h3 style="margin-top:var(--space-6);">Segurança</h3>
+    <hr class="hr">
+    <label class="checkbox" style="margin-bottom:0;">
+      <input type="checkbox" id="confirm-delete-input">
+      <span class="box"></span>
+      <span>Pedir confirmação antes de excluir um documento salvo</span>
+    </label>
+
+    <button id="save-config-btn" class="btn btn-primary" style="margin-top:var(--space-6);">Salvar configurações</button>
+    <div id="config-note" class="save-note" style="margin-top:var(--space-2);font-size:12px;" hidden></div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  const DEFAULT_INTRO_TEMPLATE = [
+    'Bom dia,',
+    'Esse e-mail tem por objetivo formalizar a conclusão do projeto de Migração/Implantação do Microsoft 365 da {{empresa}}.',
+    'Abaixo o descritivo de todas as etapas concluídas com sucesso.',
+    'Abaixo as informações e evidências dos produtos implementados/habilitados na Tenant:'
+  ].join('\n');
+
+  // key, label (shown in the builder), heading (shown in the email; null = no heading, just the image),
+  // max (1 = single evidence slot, replaced on re-add; Infinity = many)
+  const SECTIONS = [
+    { key: 'planner', label: 'Abertura (print do Planner)', heading: null, max: 1 },
+    { key: 'empresa_info', label: 'Informações da empresa', heading: 'Informações da empresa', max: 1 },
+    { key: 'dominio', label: 'Domínio', heading: 'Domínio', max: 1 },
+    { key: 'licencas', label: 'Licenças', heading: 'Licenças', max: Infinity },
+    { key: 'teams', label: 'Teams', heading: 'Teams', max: 1, reportHeader: true },
+    { key: 'sharepoint', label: 'SharePoint', heading: 'SharePoint', max: 1 },
+    { key: 'onedrive', label: 'OneDrive', heading: 'OneDrive', max: 1 },
+    { key: 'apps365', label: 'Apps 365', heading: 'Apps 365', max: 1 },
+    { key: 'exchange', label: 'Exchange', heading: 'Exchange', max: 1 },
+    { key: 'outros', label: 'Não identificado', heading: 'Outras evidências', max: Infinity }
+  ];
+  const SECTION_KEYS = SECTIONS.map(s => s.key);
+  const SECTION_BY_KEY = Object.fromEntries(SECTIONS.map(s => [s.key, s]));
+
+  function slugify(text) {
+    return (text || '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '') || ('empresa-' + Date.now());
+  }
+
+  const state = {
+    activeTab: 'criar-cpor',
+    docId: null,
+    empresa: '',
+    sections: Object.fromEntries(SECTIONS.map(s => [s.key, []])),
+    savedDocs: [],
+    introTemplate: DEFAULT_INTRO_TEMPLATE,
+    theme: 'light',
+    defaultPartner: '',
+    defaultRole: '',
+    confirmDelete: false
+  };
+
+  // ————————————————————————————————————————————————————————————
+  // Theme (a per-viewer preference — kept in localStorage, applied
+  // instantly; independent of the Claude Artifact viewer's own theme)
+  // ————————————————————————————————————————————————————————————
+  const THEME_STORAGE_KEY = 'facilitadorCpor:theme';
+  let systemThemeQuery = null;
+  function applyTheme(theme) {
+    state.theme = theme;
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.body.classList.toggle('theme-dark', isDark);
+    if (systemThemeQuery) { systemThemeQuery.onchange = null; systemThemeQuery = null; }
+    if (theme === 'system' && window.matchMedia) {
+      systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      systemThemeQuery.onchange = (e) => document.body.classList.toggle('theme-dark', e.matches);
+    }
+    try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch (e) { /* ignore */ }
+  }
+  function loadStoredTheme() {
+    try { return localStorage.getItem(THEME_STORAGE_KEY) || 'light'; } catch (e) { return 'light'; }
+  }
+
+  let db = null, assets = null, sample = null, sampleImageCap = 5;
+  let saveTimer = null;
+
+  // — element refs —
+  const navStatusEl = document.getElementById('nav-status');
+  const navStatusTextEl = document.getElementById('nav-status-text');
+  const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+
+  const empresaEl = document.getElementById('empresa-input');
+  const sectionCardsEl = document.getElementById('section-cards');
+  const bulkDropzoneEl = document.getElementById('bulk-dropzone');
+  const bulkFileInputEl = document.getElementById('bulk-file-input');
+  const bulkHintEl = document.getElementById('bulk-dropzone-hint');
+  const bulkStatusEl = document.getElementById('bulk-status');
+  const stagingEl = document.getElementById('staging');
+  const stagingRowEl = document.getElementById('staging-row');
+  const fileCountEl = document.getElementById('file-count');
+  const saveStatusEl = document.getElementById('save-status');
+  const saveStatusTextEl = document.getElementById('save-status-text');
+
+  const emailSubjectEl = document.getElementById('email-subject');
+  const copySubjectBtnEl = document.getElementById('copy-subject-btn');
+  const emailPreviewEl = document.getElementById('email-preview');
+  const copyBtnEl = document.getElementById('copy-btn');
+  const copyNoteEl = document.getElementById('copy-note');
+
+  const savedDocListEl = document.getElementById('saved-doc-list');
+  const savedDocEmptyEl = document.getElementById('saved-doc-empty');
+
+  const themeSwitchEl = document.getElementById('theme-switch');
+  const defaultPartnerInputEl = document.getElementById('default-partner-input');
+  const defaultRoleInputEl = document.getElementById('default-role-input');
+  const confirmDeleteInputEl = document.getElementById('confirm-delete-input');
+  const introTemplateInputEl = document.getElementById('intro-template-input');
+  const saveConfigBtnEl = document.getElementById('save-config-btn');
+  const configNoteEl = document.getElementById('config-note');
+
+  // ————————————————————————————————————————————————————————————
+  // Tabs
+  // ————————————————————————————————————————————————————————————
+  function setActiveTab(id) {
+    state.activeTab = id;
+    tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === id));
+    ['criar-cpor', 'engagement-poe', 'salvos', 'config'].forEach(t => {
+      document.getElementById('tab-' + t).hidden = t !== id;
+    });
+  }
+  tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveTab(btn.dataset.tab)));
+
+  // ————————————————————————————————————————————————————————————
+  // Storage helpers
+  // ————————————————————————————————————————————————————————————
+  async function storeFile(file) {
+    // Keep the original Blob (`raw`) in memory too: it's what lets "Copiar
+    // corpo do e-mail" embed the full-resolution, unmodified image bytes
+    // without re-fetching — a saved/reopened item won't have this and
+    // falls back to fetching its `url` at copy time.
+    if (assets) {
+      try {
+        const res = await assets.upload(file);
+        return { id: res.id, url: res.url, name: file.name, persisted: true, raw: file };
+      } catch (e) { /* fall through */ }
+    }
+    return { id: 'local-' + Math.random().toString(36).slice(2), url: URL.createObjectURL(file), name: file.name, persisted: false, raw: file };
+  }
+
+  function deleteStoredItem(item) {
+    if (item && item.persisted && assets) assets.delete(item.id).catch(() => {});
+  }
+
+  // Some browsers/OSes leave `File.type` blank for otherwise-valid images
+  // (seen with certain filenames); fall back to the extension so a real
+  // image never gets silently dropped from the drop/pick list.
+  function isImageFile(f) {
+    return f.type.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp)$/i.test(f.name || '');
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Sections: add / remove / move (max=1 sections replace on re-add)
+  // ————————————————————————————————————————————————————————————
+  function addToSection(key, item) {
+    const def = SECTION_BY_KEY[key];
+    const arr = state.sections[key];
+    if (def.max === 1 && arr.length >= 1) {
+      deleteStoredItem(arr[0]);
+      arr.length = 0;
+    }
+    item.section = key;
+    arr.push(item);
+  }
+  function removeFromSection(key, id) {
+    const arr = state.sections[key];
+    const item = arr.find(f => f.id === id);
+    state.sections[key] = arr.filter(f => f.id !== id);
+    deleteStoredItem(item);
+    renderSectionCards(); renderFooter(); renderPreview(); scheduleSave();
+  }
+  function moveItem(fromKey, id, toKey) {
+    const fromArr = state.sections[fromKey];
+    const idx = fromArr.findIndex(f => f.id === id);
+    if (idx === -1) return;
+    const [item] = fromArr.splice(idx, 1);
+    addToSection(toKey, item);
+    renderSectionCards(); renderFooter(); renderPreview(); scheduleSave();
+  }
+  async function addFilesToSection(key, fileList) {
+    const files = Array.from(fileList || []).filter(f => isImageFile(f));
+    for (const file of files) {
+      const stored = await storeFile(file);
+      addToSection(key, stored);
+      renderSectionCards(); renderFooter(); renderPreview(); scheduleSave();
+    }
+  }
+
+  function renderThumbGrid(gridEl, files, key) {
+    gridEl.innerHTML = '';
+    gridEl.hidden = files.length === 0;
+    files.forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'photo-cell';
+      const thumb = document.createElement('div');
+      thumb.className = 'photo-thumb grayscale';
+      const img = document.createElement('img');
+      img.src = f.url; img.alt = f.name || '';
+      thumb.appendChild(img);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button'; removeBtn.className = 'photo-remove';
+      removeBtn.setAttribute('aria-label', 'Remover imagem');
+      removeBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>`;
+      removeBtn.addEventListener('click', () => removeFromSection(key, f.id));
+
+      cell.append(thumb, removeBtn);
+
+      const move = document.createElement('select');
+      move.className = 'input photo-move';
+      SECTIONS.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.key; opt.textContent = s.label;
+        if (s.key === key) opt.selected = true;
+        move.appendChild(opt);
+      });
+      move.addEventListener('change', () => moveItem(key, f.id, move.value));
+      cell.appendChild(move);
+
+      gridEl.appendChild(cell);
+    });
+  }
+
+  function renderSectionCards() {
+    sectionCardsEl.innerHTML = '';
+    SECTIONS.forEach(({ key, label, max }) => {
+      const files = state.sections[key];
+      const full = max !== Infinity && files.length >= max;
+
+      const card = document.createElement('div');
+      card.className = 'section-card' + (full ? ' is-full' : '');
+
+      const titleRow = document.createElement('div');
+      titleRow.className = 'section-card-title';
+      const title = document.createElement('h4');
+      title.textContent = label;
+      const count = document.createElement('span');
+      count.className = 'tag section-card-count';
+      count.textContent = files.length === 0 ? 'Vazio' : (max === 1 ? 'OK' : `${files.length}`);
+      titleRow.append(title, count);
+      card.appendChild(titleRow);
+
+      if (max !== 1) {
+        const hint = document.createElement('p');
+        hint.className = 'text-muted section-card-hint';
+        hint.textContent = 'Aceita várias imagens';
+        card.appendChild(hint);
+      }
+
+      const dz = document.createElement('div');
+      dz.className = 'dropzone dropzone-compact';
+      dz.tabIndex = 0; dz.setAttribute('role', 'button'); dz.setAttribute('aria-label', 'Selecionar imagens de ' + label);
+      dz.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg><div class="dropzone-title">${full ? 'Substituir' : 'Adicionar'}</div>`;
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = 'image/*'; input.multiple = max !== 1; input.style.display = 'none';
+      const grid = document.createElement('div');
+      grid.className = 'photo-grid';
+
+      const open = () => input.click();
+      dz.addEventListener('click', open);
+      dz.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+      dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+      dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+      dz.addEventListener('drop', (e) => { e.preventDefault(); dz.classList.remove('drag-over'); addFilesToSection(key, e.dataTransfer.files); });
+      input.addEventListener('change', (e) => { addFilesToSection(key, e.target.files); e.target.value = ''; });
+
+      renderThumbGrid(grid, files, key);
+
+      card.append(dz, input, grid);
+      sectionCardsEl.appendChild(card);
+    });
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Bulk drop + automatic classification
+  // Pass 1 (instant, free): match the file NAME against each section's
+  // keywords. Pass 2 (only for what pass 1 couldn't place): show the
+  // IMAGE to Claude via `sample` and ask which product it depicts.
+  // ————————————————————————————————————————————————————————————
+  const CLASSIFY_KEYS = SECTION_KEYS.filter(k => k !== 'outros');
+  const FILENAME_RULES = [
+    { key: 'planner', words: ['planner'] },
+    { key: 'empresa_info', words: ['organizacao', 'organizaçao', 'organização', 'empresainfo', 'infoempresa', 'tenant', 'visaogeral'] },
+    { key: 'dominio', words: ['dominios', 'dominio', 'domain'] },
+    { key: 'licencas', words: ['licencas', 'licenças', 'licenca', 'license', 'licensing'] },
+    { key: 'teams', words: ['teams'] },
+    { key: 'sharepoint', words: ['sharepoint'] },
+    { key: 'onedrive', words: ['onedrive'] },
+    { key: 'apps365', words: ['apps365', 'office365', 'apps', 'office'] },
+    { key: 'exchange', words: ['exchange'] }
+  ];
+  function normalizeName(name) {
+    return (name || '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/\.[a-z0-9]+$/, '').replace(/[^a-z0-9]+/g, '');
+  }
+  function matchByFilename(name) {
+    const norm = normalizeName(name);
+    if (!norm) return null;
+    for (const rule of FILENAME_RULES) {
+      if (rule.words.some(w => norm.includes(normalizeName(w)))) return rule.key;
+    }
+    return null;
+  }
+
+  function setClassifyNote(text) {
+    bulkStatusEl.textContent = text || '';
+    bulkStatusEl.hidden = !text;
+  }
+
+  function renderStaging(items) {
+    stagingEl.hidden = items.length === 0;
+    stagingRowEl.innerHTML = '';
+    items.forEach(it => {
+      const wrap = document.createElement('div');
+      wrap.className = 'staging-item';
+      const thumb = document.createElement('div');
+      thumb.className = 'staging-thumb';
+      const img = document.createElement('img'); img.src = it.url; img.alt = '';
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner';
+      spinner.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`;
+      thumb.append(img, spinner);
+      wrap.appendChild(thumb);
+      stagingRowEl.appendChild(wrap);
+    });
+  }
+
+  async function classifyBatch(items) {
+    const prompt = `Estas são ${items.length} captura(s) de tela de evidências de um projeto de migração/implantação do Microsoft 365, na mesma ordem em que foram enviadas.\n\nPara cada imagem, escolha exatamente uma destas chaves:\n- "planner": print do Microsoft Planner mostrando tarefas/checklist do projeto (geralmente a imagem de abertura do relatório)\n- "empresa_info": print com informações gerais da empresa/tenant (visão geral do admin center)\n- "dominio": print da configuração/verificação de domínio\n- "licencas": print de licenças atribuídas/compradas\n- "teams": print do Microsoft Teams\n- "sharepoint": print do SharePoint\n- "onedrive": print do OneDrive\n- "apps365": print de Apps/Office 365 (instalação de aplicativos)\n- "exchange": print do Exchange/e-mail (admin center de e-mail)\n- "outros": não é possível identificar com confiança\n\nResponda SOMENTE com um array JSON de ${items.length} strings (uma por imagem, nessa ordem), por exemplo: ["planner","teams","outros"]. Nenhum outro texto.`;
+    return sample.json(prompt, { images: items.map(it => it.file), modelTier: 'quick' });
+  }
+
+  async function addBulkFiles(fileList) {
+    const files = Array.from(fileList || []).filter(f => isImageFile(f));
+    if (files.length === 0) return;
+    setClassifyNote('');
+
+    const staged = [];
+    for (const file of files) {
+      const stored = await storeFile(file);
+      staged.push({ ...stored, file });
+    }
+
+    // Pass 1: filename match — instant, no Claude call needed.
+    const byName = [];
+    const needsVision = [];
+    staged.forEach(it => {
+      const key = matchByFilename(it.name);
+      if (key) { addToSection(key, it); byName.push(it); }
+      else needsVision.push(it);
+    });
+    if (byName.length) { renderSectionCards(); renderFooter(); renderPreview(); scheduleSave(); }
+
+    if (needsVision.length === 0) return;
+    renderStaging(needsVision);
+
+    if (!sample) {
+      needsVision.forEach(it => addToSection('outros', it));
+      renderStaging([]); renderSectionCards(); renderFooter(); renderPreview(); scheduleSave();
+      setClassifyNote(`${needsVision.length} imagem(ns) sem nome reconhecível foram para "Não identificado" — identificação por imagem indisponível nesta visualização.`);
+      return;
+    }
+
+    let lastErrorCode = null;
+    const batchSize = Math.max(1, Math.min(sampleImageCap, 5));
+    for (let i = 0; i < needsVision.length; i += batchSize) {
+      const batch = needsVision.slice(i, i + batchSize);
+      try {
+        const guesses = await classifyBatch(batch);
+        batch.forEach((it, idx) => {
+          const guess = Array.isArray(guesses) ? String(guesses[idx] || '').toLowerCase() : '';
+          const key = CLASSIFY_KEYS.includes(guess) ? guess : 'outros';
+          addToSection(key, it);
+        });
+      } catch (e) {
+        lastErrorCode = (e && e.code) || 'erro';
+        batch.forEach(it => addToSection('outros', it));
+      }
+      renderStaging(needsVision.slice(i + batchSize));
+      renderSectionCards(); renderFooter(); renderPreview(); scheduleSave();
+    }
+    renderStaging([]);
+    if (lastErrorCode) {
+      setClassifyNote(`Identificação por imagem falhou (${lastErrorCode}) para ${needsVision.length} imagem(ns) sem nome reconhecível — foram para "Não identificado". Mova manualmente pelo seletor, ou nomeie o arquivo com o produto (ex.: "teams.png").`);
+    } else {
+      setClassifyNote('');
+    }
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Footer / status
+  // ————————————————————————————————————————————————————————————
+  function totalFileCount() { return SECTION_KEYS.reduce((sum, k) => sum + state.sections[k].length, 0); }
+  function renderFooter() {
+    const count = totalFileCount();
+    fileCountEl.textContent = count === 0 ? 'Nenhuma evidência ainda' : count === 1 ? '1 evidência' : `${count} evidências`;
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Live preview
+  // ————————————————————————————————————————————————————————————
+  function heading(text) { const div = document.createElement('div'); div.className = 'email-preview-heading'; div.textContent = text; return div; }
+  function para(text) { const p = document.createElement('p'); p.textContent = text; return p; }
+  function emptyNote(text) { const div = document.createElement('div'); div.className = 'email-preview-empty'; div.textContent = text; return div; }
+  function computeSubject() {
+    const empresa = state.empresa.trim() || '[Empresa]';
+    return `Conclusão de Projeto - ${empresa}`;
+  }
+
+  // Builds the body's DOM structure (headings, paragraphs, image slots) —
+  // shared by the on-screen live preview (cheap, cropped thumbnails) and
+  // the full-quality copy routine (async, one <img> per file, natural size).
+  // `imageNode(item)` decides how a single evidence image is rendered.
+  function buildBody(imageNode) {
+    const empresa = state.empresa.trim() || '[Empresa]';
+    const body = document.createElement('div');
+    body.className = 'email-preview-body';
+
+    state.introTemplate.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
+      body.appendChild(para(line.replace(/\{\{\s*empresa\s*\}\}/g, empresa)));
+    });
+
+    const imagesOf = (files) => {
+      const wrap = document.createDocumentFragment();
+      files.forEach(f => wrap.appendChild(imageNode(f)));
+      return wrap;
+    };
+
+    const planner = state.sections.planner;
+    if (planner.length) body.appendChild(imagesOf(planner));
+
+    SECTIONS.forEach(({ key, heading: h, reportHeader }) => {
+      if (key === 'planner') return;
+      const files = state.sections[key];
+      if (key === 'outros' && files.length === 0) return; // hide empty fallback bucket
+      if (reportHeader) body.appendChild(heading('Relatório de uso'));
+      body.appendChild(heading(h));
+      body.appendChild(files.length ? imagesOf(files) : emptyNote('Nenhuma evidência anexada.'));
+    });
+
+    return body;
+  }
+
+  function screenImageNode(f) {
+    const cell = document.createElement('div');
+    cell.className = 'photo-cell';
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb grayscale';
+    const img = document.createElement('img'); img.src = f.url; img.alt = f.name || '';
+    thumb.appendChild(img);
+    cell.appendChild(thumb);
+    const grid = document.createElement('div');
+    grid.className = 'photo-grid';
+    grid.appendChild(cell);
+    return grid;
+  }
+
+  function renderPreview() {
+    emailSubjectEl.textContent = computeSubject();
+    emailPreviewEl.innerHTML = '';
+    emailPreviewEl.appendChild(buildBody(screenImageNode));
+  }
+
+  // — copy: full-resolution, self-contained (data: URI) images —
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+  async function itemToDataUrl(item) {
+    if (item.raw) return blobToDataUrl(item.raw);
+    const res = await fetch(item.url);
+    if (!res.ok) throw new Error('fetch failed');
+    return blobToDataUrl(await res.blob());
+  }
+
+  function copyPlainText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+    }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return Promise.resolve(ok);
+    } catch (e) { return Promise.resolve(false); }
+  }
+
+  function copySubject() {
+    copyPlainText(computeSubject()).then(ok => {
+      copyNoteEl.textContent = ok ? 'Assunto copiado.' : 'Não foi possível copiar o assunto automaticamente — selecione o texto manualmente.';
+      copyNoteEl.className = 'copy-note ' + (ok ? 'ok' : 'err');
+      copyNoteEl.hidden = false;
+    });
+  }
+  copySubjectBtnEl.addEventListener('click', copySubject);
+
+  async function copyEmail() {
+    copyNoteEl.hidden = true;
+    copyBtnEl.disabled = true;
+    copyBtnEl.lastChild.textContent = ' Preparando imagens…';
+
+    const allItems = SECTION_KEYS.flatMap(k => state.sections[k]);
+    let failed = 0;
+    const urlMap = new Map();
+    await Promise.all(allItems.map(async it => {
+      try { urlMap.set(it.id, await itemToDataUrl(it)); }
+      catch (e) { failed++; }
+    }));
+
+    const fullImageNode = (f) => {
+      const img = document.createElement('img');
+      img.src = urlMap.get(f.id) || f.url;
+      img.alt = f.name || '';
+      img.style.display = 'block';
+      img.style.margin = '0 0 12px';
+      return img;
+    };
+
+    const offscreen = document.createElement('div');
+    offscreen.style.position = 'fixed';
+    offscreen.style.left = '-99999px';
+    offscreen.style.top = '0';
+    offscreen.appendChild(buildBody(fullImageNode));
+    document.body.appendChild(offscreen);
+
+    let ok = false;
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(offscreen);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      ok = document.execCommand('copy');
+      sel.removeAllRanges();
+    } catch (e) { ok = false; }
+    document.body.removeChild(offscreen);
+
+    copyBtnEl.disabled = false;
+    copyBtnEl.lastChild.textContent = ' Copiar corpo do e-mail';
+
+    if (ok) {
+      copyNoteEl.textContent = failed > 0
+        ? `Corpo copiado, mas ${failed} imagem(ns) não puderam ser incluídas — cole e confira.`
+        : 'Corpo do e-mail copiado (imagens em tamanho real) — cole no seu cliente de e-mail.';
+      copyNoteEl.className = 'copy-note ' + (failed > 0 ? 'err' : 'ok');
+    } else {
+      copyNoteEl.textContent = 'Não foi possível copiar automaticamente. Selecione o texto na pré-visualização manualmente (Ctrl/Cmd+A, Ctrl/Cmd+C).';
+      copyNoteEl.className = 'copy-note err';
+    }
+    copyNoteEl.hidden = false;
+  }
+  copyBtnEl.addEventListener('click', copyEmail);
+
+  // ————————————————————————————————————————————————————————————
+  // Auto-save (debounced) — overwrites the doc for the same company name
+  // ————————————————————————————————————————————————————————————
+  function setSaveStatus(mode, text) {
+    saveStatusEl.className = 'save-status' + (mode ? ' ' + mode : '');
+    saveStatusTextEl.textContent = text;
+  }
+
+  function scheduleSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    if (!state.empresa.trim()) { setSaveStatus('', 'Preencha a empresa para salvar automaticamente'); return; }
+    if (!db) { setSaveStatus('', 'Salvamento indisponível nesta visualização'); return; }
+    setSaveStatus('busy', 'Salvando…');
+    saveTimer = setTimeout(doSave, 1200);
+  }
+
+  async function doSave() {
+    const empresa = state.empresa.trim();
+    if (!empresa || !db) return;
+    const docId = state.docId || ('cpor-' + slugify(empresa));
+    const sections = {};
+    let skipped = 0;
+    SECTION_KEYS.forEach(key => {
+      sections[key] = state.sections[key]
+        .filter(f => { if (!f.persisted) { skipped++; return false; } return true; })
+        .map(f => ({ id: f.id, name: f.name || '' }));
+    });
+    const body = { type: 'cpor', name: 'CPOR ' + empresa, empresa, sections, updatedAt: new Date().toISOString() };
+    try {
+      await db.doc('documents/' + docId).set(body);
+      state.docId = docId;
+      setSaveStatus('ok', skipped > 0 ? `Salvo (${skipped} imagem(ns) não persistida(s))` : 'Salvo automaticamente');
+    } catch (e) {
+      setSaveStatus('err', 'Não foi possível salvar');
+    }
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Saved documents list (shared between CPOR e-mails and Engagement POE)
+  // ————————————————————————————————————————————————————————————
+  function renderSavedDocs() {
+    savedDocListEl.innerHTML = '';
+    savedDocEmptyEl.hidden = state.savedDocs.length !== 0;
+    state.savedDocs.forEach(doc => {
+      const row = document.createElement('div');
+      row.className = 'saved-doc-row';
+      const typeTag = document.createElement('span');
+      typeTag.className = 'tag' + (doc.type === 'poe' ? ' tag-accent' : '');
+      typeTag.textContent = doc.type === 'poe' ? 'Engagement POE' : 'CPOR';
+      const label = document.createElement('span');
+      label.innerHTML = `<b>${doc.name}</b>`;
+      row.append(typeTag, label);
+      const dt = doc.updatedAt ? new Date(doc.updatedAt) : null;
+      if (dt && !isNaN(dt)) {
+        const time = document.createElement('time');
+        time.className = 'text-muted';
+        time.textContent = dt.toLocaleString('pt-BR');
+        row.appendChild(time);
+      }
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      if (doc.type === 'poe') {
+        const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button'; downloadBtn.className = 'btn btn-primary btn-sm'; downloadBtn.textContent = 'Baixar PDF';
+        downloadBtn.addEventListener('click', () => downloadSavedPoePdf(doc.id, downloadBtn));
+        actions.appendChild(downloadBtn);
+      }
+      const openBtn = document.createElement('button');
+      openBtn.type = 'button'; openBtn.className = 'btn btn-secondary btn-sm'; openBtn.textContent = 'Abrir';
+      openBtn.addEventListener('click', () => doc.type === 'poe' ? loadPoeDocument(doc.id) : loadDocument(doc.id));
+      actions.appendChild(openBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button'; delBtn.className = 'btn btn-secondary btn-sm'; delBtn.textContent = 'Excluir';
+      delBtn.addEventListener('click', () => {
+        if (!state.confirmDelete || delBtn.dataset.confirming) { deleteDocument(doc.id); return; }
+        delBtn.dataset.confirming = '1'; delBtn.textContent = 'Confirmar exclusão?';
+        setTimeout(() => { delete delBtn.dataset.confirming; delBtn.textContent = 'Excluir'; }, 4000);
+      });
+      actions.appendChild(delBtn);
+
+      row.appendChild(actions);
+      savedDocListEl.appendChild(row);
+    });
+  }
+
+  function subscribeSavedDocs() {
+    if (!db) { renderSavedDocs(); return; }
+    db.collection('documents').orderBy('updatedAt', 'desc').limit(50).onSnapshot(
+      (snap) => { state.savedDocs = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderSavedDocs(); },
+      () => {}
+    );
+  }
+
+  async function loadDocument(docId) {
+    if (!db) return;
+    const snap = await db.doc('documents/' + docId).get().catch(() => null);
+    if (!snap || !snap.exists) return;
+    const data = snap.data();
+    state.docId = docId;
+    state.empresa = data.empresa || '';
+    empresaEl.value = state.empresa;
+    const sections = Object.fromEntries(SECTIONS.map(s => [s.key, []]));
+    Object.entries(data.sections || {}).forEach(([key, items]) => {
+      if (!sections[key]) return;
+      sections[key] = (items || []).map(it => ({ id: it.id, name: it.name, url: '/_blob/' + it.id, persisted: true, section: key }));
+    });
+    state.sections = sections;
+    setActiveTab('criar-cpor');
+    renderSectionCards(); renderFooter(); renderPreview();
+    setSaveStatus('ok', 'Aberto — pronto para editar');
+  }
+
+  async function deleteDocument(docId) {
+    if (!db) return;
+    const doc = state.savedDocs.find(d => d.id === docId);
+    try {
+      await db.doc('documents/' + docId).delete();
+      if (doc && assets) Object.values(doc.sections || {}).forEach(items => (items || []).forEach(it => assets.delete(it.id).catch(() => {})));
+      if (state.docId === docId) state.docId = null;
+      if (state.poe && state.poe.docId === docId) state.poe.docId = null;
+    } catch (e) {}
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Settings
+  // ————————————————————————————————————————————————————————————
+  async function saveConfig() {
+    state.introTemplate = introTemplateInputEl.value || DEFAULT_INTRO_TEMPLATE;
+    state.defaultPartner = defaultPartnerInputEl.value.trim();
+    state.defaultRole = defaultRoleInputEl.value.trim();
+    state.confirmDelete = confirmDeleteInputEl.checked;
+    configNoteEl.hidden = true;
+
+    const body = {
+      introTemplate: state.introTemplate,
+      defaultPartner: state.defaultPartner,
+      defaultRole: state.defaultRole,
+      confirmDelete: state.confirmDelete
+    };
+    if (!db) {
+      try { localStorage.setItem('facilitadorCpor:settings', JSON.stringify(body)); } catch (e) { /* ignore */ }
+      configNoteEl.textContent = 'Salvamento em nuvem indisponível nesta visualização — guardado só neste navegador.';
+      configNoteEl.hidden = false;
+      renderPreview();
+      return;
+    }
+    try {
+      await db.doc('app/settings').set(body);
+      configNoteEl.textContent = 'Configurações salvas.';
+    } catch (e) {
+      configNoteEl.textContent = 'Não foi possível salvar as configurações agora.';
+    }
+    configNoteEl.hidden = false;
+    renderPreview();
+  }
+  saveConfigBtnEl.addEventListener('click', saveConfig);
+
+  function applySettingsData(data) {
+    if (typeof data.introTemplate === 'string') {
+      state.introTemplate = data.introTemplate;
+      introTemplateInputEl.value = state.introTemplate;
+    }
+    if (typeof data.defaultPartner === 'string') {
+      state.defaultPartner = data.defaultPartner;
+      defaultPartnerInputEl.value = state.defaultPartner;
+      // Only overrides a POE still at the untouched default — never a doc
+      // already loaded or one the user has started customizing.
+      if (state.defaultPartner && !state.poe.docId && state.poe.partner === 'Selbetti') {
+        state.poe.partner = state.defaultPartner;
+        poePartnerEl.value = state.poe.partner;
+      }
+    }
+    if (typeof data.defaultRole === 'string') {
+      state.defaultRole = data.defaultRole;
+      defaultRoleInputEl.value = state.defaultRole;
+      if (state.defaultRole && !state.poe.docId && state.poe.signatoryRole === 'GERENTE') {
+        state.poe.signatoryRole = state.defaultRole;
+        poeSignatoryRoleEl.value = state.poe.signatoryRole;
+      }
+    }
+    if (typeof data.confirmDelete === 'boolean') {
+      state.confirmDelete = data.confirmDelete;
+      confirmDeleteInputEl.checked = state.confirmDelete;
+    }
+    renderPreview();
+    renderPoeDoc();
+  }
+
+  function subscribeSettings() {
+    try {
+      const raw = localStorage.getItem('facilitadorCpor:settings');
+      if (raw) applySettingsData(JSON.parse(raw));
+    } catch (e) { /* ignore */ }
+    if (!db) return;
+    db.doc('app/settings').onSnapshot((snap) => {
+      if (snap.exists) applySettingsData(snap.data());
+    }, () => {});
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Wiring
+  // ————————————————————————————————————————————————————————————
+  empresaEl.addEventListener('input', () => { state.empresa = empresaEl.value; renderPreview(); scheduleSave(); });
+
+  bulkDropzoneEl.addEventListener('click', () => bulkFileInputEl.click());
+  bulkDropzoneEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bulkFileInputEl.click(); } });
+  bulkDropzoneEl.addEventListener('dragover', (e) => { e.preventDefault(); bulkDropzoneEl.classList.add('drag-over'); });
+  bulkDropzoneEl.addEventListener('dragleave', () => bulkDropzoneEl.classList.remove('drag-over'));
+  bulkDropzoneEl.addEventListener('drop', (e) => { e.preventDefault(); bulkDropzoneEl.classList.remove('drag-over'); addBulkFiles(e.dataTransfer.files); });
+  bulkFileInputEl.addEventListener('change', (e) => { addBulkFiles(e.target.files); e.target.value = ''; });
+
+  themeSwitchEl.addEventListener('change', (e) => { if (e.target.name === 'theme') applyTheme(e.target.value); });
+
+  // ————————————————————————————————————————————————————————————
+  // Init
+  // ————————————————————————————————————————————————————————————
+  applyTheme(loadStoredTheme());
+  document.querySelector(`input[name="theme"][value="${state.theme}"]`).checked = true;
+  try {
+    const raw = localStorage.getItem('facilitadorCpor:settings');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (typeof saved.introTemplate === 'string') state.introTemplate = saved.introTemplate;
+      if (typeof saved.defaultPartner === 'string') { state.defaultPartner = saved.defaultPartner; defaultPartnerInputEl.value = saved.defaultPartner; }
+      if (typeof saved.defaultRole === 'string') { state.defaultRole = saved.defaultRole; defaultRoleInputEl.value = saved.defaultRole; }
+      if (typeof saved.confirmDelete === 'boolean') { state.confirmDelete = saved.confirmDelete; confirmDeleteInputEl.checked = saved.confirmDelete; }
+    }
+  } catch (e) { /* ignore */ }
+  introTemplateInputEl.value = state.introTemplate;
+  renderSectionCards();
+  renderFooter();
+  renderPreview();
+  renderSavedDocs();
+  setSaveStatus('', 'Preencha a empresa para salvar automaticamente');
+
+  function setStatus(online, text) {
+    navStatusEl.classList.toggle('online', online);
+    navStatusTextEl.textContent = text;
+  }
+  setStatus(false, 'Verificando armazenamento…');
+
+  (async () => {
+    try {
+      [db, assets, sample] = await Promise.all([
+        window.claude ? window.claude.use('db') : Promise.resolve(null),
+        window.claude ? window.claude.use('assets') : Promise.resolve(null),
+        window.claude ? window.claude.use('sample') : Promise.resolve(null)
+      ]);
+    } catch (e) {}
+
+    if (sample) {
+      try {
+        const limits = await sample.limits();
+        if (limits && limits.images) sampleImageCap = limits.images.maxCount || 5;
+      } catch (e) {}
+    }
+
+    if (db) {
+      setStatus(true, assets && sample ? 'Salvamento e identificação automática ativos' : 'Salvamento ativo');
+      subscribeSavedDocs();
+      subscribeSettings();
+      setSaveStatus('', 'Preencha a empresa para salvar automaticamente');
+    } else {
+      setStatus(false, 'Visualização local — salvamento indisponível');
+    }
+    bulkHintEl.textContent = sample
+      ? 'JPG ou PNG — identificação automática por seção'
+      : 'JPG ou PNG — identificação automática indisponível nesta visualização; classifique manualmente pelo seletor';
+
+    if (db) { subscribePoeStatus(); }
+  })();
+
+  // ════════════════════════════════════════════════════════════
+  // Criar Engagement POE — official Microsoft POE / CPOR claim
+  // template (Modern Work & Security Usage + Business Applications),
+  // filled in live and exported as a faithful multi-page PDF.
+  // ════════════════════════════════════════════════════════════
+
+  // Exact workload list from Microsoft's current official template
+  // (EngagementProofOfExecutionTemplate2.docx) — labels kept ALL CAPS
+  // to match the source document verbatim.
+  // Exact order and naming from the partner's own real documents
+  // (Higietop/Berkan/Vibe Tecnologia — all three agree), not the newer
+  // blank Microsoft template's alphabetical list.
+  const WORKLOADS = [
+    { key: 'teams-apps', label: 'Teams Apps' },
+    { key: 'teams-meetings', label: 'Teams Meetings' },
+    { key: 'teams-phone', label: 'Teams Phone Enabled Users' },
+    { key: 'teams', label: 'Teams' },
+    { key: 'teams-frontline', label: 'Teams for Frontline Workers' },
+    { key: 'teams-rooms', label: 'Teams Rooms' },
+    { key: 'intune', label: 'Microsoft Intune' },
+    { key: 'viva-connections', label: 'Viva Connections' },
+    { key: 'viva-learning', label: 'Viva Learning' },
+    { key: 'viva-insights', label: 'Viva Insights' },
+    { key: 'viva-topics', label: 'Viva Topics' },
+    { key: 'viva-engage', label: 'Viva Engage' },
+    { key: 'viva-goals', label: 'Viva Goals' },
+    { key: 'aadp', label: 'Azure Active Directory Premium (AADP)' },
+    { key: 'aadp2', label: 'Azure Active Directory Premium 2 (AADP2)' },
+    { key: 'm365-apps', label: 'Microsoft 365 Apps' },
+    { key: 'windows365', label: 'Windows 365' },
+    { key: 'irm', label: 'Insider Risk Management (IRM)' },
+    { key: 'mdc', label: 'Microsoft Defender for Cloud Apps (MDC) / Microsoft Cloud App Security (MCAS)' },
+    { key: 'mde', label: 'Microsoft Defender Endpoint (MDE) / Microsoft Defender Advanced Threat Protection (MDATP)' },
+    { key: 'mip', label: 'Microsoft Information Protection w/ Data Loss Prevention (MIP)' },
+    { key: 'mdi', label: 'Microsoft Defender for Identity (MDI) / Azure ATP' },
+    { key: 'mdo', label: 'Microsoft Defender for Office (MDO)' },
+    { key: 'exchange-online', label: 'Exchange Online' },
+    { key: 'sharepoint-online', label: 'SharePoint Online' },
+    { key: 'outlook-mobile', label: 'Outlook Mobile' }
+  ];
+  const POE_DEFAULT_CHECKED = ['teams', 'm365-apps', 'exchange-online', 'sharepoint-online'];
+  // Real assets from the partner's own documents: the official Microsoft
+  // logo (identical in the blank official template and in every filled
+  // example) and their fixed project-timeline graphic (same in every real
+  // CPOR they showed — reused here verbatim rather than redrawn).
+  const POE_LOGO_DATA_URI = 'data:image/png;base64,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';
+  const POE_GANTT_DATA_URI = 'data:image/png;base64,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';
+
+  // Scope-of-work default: fixed boilerplate matching the partner's own
+  // standard write-up (identical across their real CPOR claims), with
+  // {{qty}}/{{license}} filled in from the Licenças fields above. Lines
+  // matching "Nª Semana" or "Status Final" render as bold headings; every
+  // other line renders as a bullet under the heading above it — exactly
+  // matching the source documents' layout.
+  const POE_SCOPE_DEFAULT = [
+    '1ª Semana',
+    'Realização de reunião de planejamento de migração com o cliente.',
+    'Planejamento interno com os analistas responsáveis pela execução da migração.',
+    'Levantamento do tamanho das caixas postais dos usuários para migração de e-mails.',
+    'Levantamento do tamanho das caixas de arquivos dos usuários para migração para o SharePoint.',
+    '2ª Semana',
+    'Criação e execução dos lotes de migração de e-mails.',
+    'Criação e execução dos lotes de migração de arquivos.',
+    '3ª Semana',
+    'Migração do DNS para a Microsoft.',
+    'Execução da migração dos serviços de e-mail (Exchange Online), arquivos (SharePoint) e armazenamento pessoal (OneDrive).',
+    '4ª Semana',
+    'Suporte pós-migração oferecido aos usuários durante uma semana, com orientações sobre o uso dos novos serviços.',
+    'Durante o processo, foram migradas {{qty}} contas de {{license}}.',
+    'Além dos e-mails e arquivos, também foram migrados os calendários e os contatos dos usuários.',
+    'Treinamento de uso apps 365 desktops.',
+    'Status Final:',
+    'Migração concluída com sucesso, contemplando todos os serviços previstos e garantindo a continuidade operacional dos {{qty}} usuários.'
+  ].join('\n');
+
+  state.poe = {
+    docId: null,
+    partner: 'Selbetti',
+    customer: '',
+    signatoryName: '',
+    signatoryRole: 'GERENTE',
+    startDate: '',
+    endDate: '',
+    licenseQty: '',
+    licenseName: '',
+    workloads: Object.fromEntries(WORKLOADS.map(w => [w.key, {
+      checked: POE_DEFAULT_CHECKED.includes(w.key), activity: 'deployment', otherText: ''
+    }])),
+    scopeText: '',
+    scopeTouched: false,
+    biz: { domain: '', tenant: '', project: '', workloads: '', need: '', activities: '' }
+  };
+  let poeSaveTimer = null;
+
+  const poePartnerEl = document.getElementById('poe-partner');
+  const poeCustomerEl = document.getElementById('poe-customer');
+  const poeSignatoryNameEl = document.getElementById('poe-signatory-name');
+  const poeSignatoryRoleEl = document.getElementById('poe-signatory-role');
+  const poeStartDateEl = document.getElementById('poe-start-date');
+  const poeEndDateEl = document.getElementById('poe-end-date');
+  const poeLicenseQtyEl = document.getElementById('poe-license-qty');
+  const poeLicenseNameEl = document.getElementById('poe-license-name');
+  const poeChecklistEl = document.getElementById('poe-checklist');
+  const poeChecklistSummaryEl = document.getElementById('poe-checklist-summary');
+  const poeScopeTextEl = document.getElementById('poe-scope-text');
+  const poeScopeResetBtnEl = document.getElementById('poe-scope-reset-btn');
+  const poeBizAppsHeadEl = document.getElementById('poe-bizapps-head');
+  const poeBizAppsBodyEl = document.getElementById('poe-bizapps-body');
+  const poeBizDomainEl = document.getElementById('poe-biz-domain');
+  const poeBizTenantEl = document.getElementById('poe-biz-tenant');
+  const poeBizProjectEl = document.getElementById('poe-biz-project');
+  const poeBizWorkloadsEl = document.getElementById('poe-biz-workloads');
+  const poeBizNeedEl = document.getElementById('poe-biz-need');
+  const poeBizActivitiesEl = document.getElementById('poe-biz-activities');
+  const poeDocEl = document.getElementById('poe-doc');
+  const poeSaveStatusEl = document.getElementById('poe-save-status');
+  const poeSaveStatusTextEl = document.getElementById('poe-save-status-text');
+  const poeDownloadBtnEl = document.getElementById('poe-download-btn');
+  const poeDownloadNoteEl = document.getElementById('poe-download-note');
+
+  function debounce(fn, ms) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  }
+
+  // — dates / text helpers —
+  function formatDateBR(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  function formatDateRange(s, e) {
+    if (!s && !e) return '';
+    return `${formatDateBR(s)} – ${formatDateBR(e)}`;
+  }
+  function computePoeScopeDefault() {
+    const qty = String(state.poe.licenseQty || '').trim() || '[quantidade]';
+    const lic = state.poe.licenseName.trim() || '[licença]';
+    return POE_SCOPE_DEFAULT.replace(/\{\{qty\}\}/g, qty).replace(/\{\{license\}\}/g, lic);
+  }
+  function computeScopeGroups() {
+    const lines = state.poe.scopeText.split('\n').map(l => l.trim()).filter(Boolean);
+    const isWeek = (l) => /^\d+[ªa]\s*semana$/i.test(l);
+    const isStatus = (l) => /^status final:?$/i.test(l);
+    const groups = [];
+    let current = null;
+    lines.forEach(line => {
+      if (isWeek(line)) { current = { heading: line, bulleted: true, items: [] }; groups.push(current); }
+      else if (isStatus(line)) { current = { heading: 'Status Final:', bulleted: false, items: [] }; groups.push(current); }
+      else {
+        if (!current) { current = { heading: null, bulleted: true, items: [] }; groups.push(current); }
+        current.items.push(line);
+      }
+    });
+    return groups;
+  }
+
+  // — checklist (builder UI) —
+  function renderPoeChecklist() {
+    poeChecklistEl.innerHTML = '';
+    WORKLOADS.forEach(w => {
+      const item = state.poe.workloads[w.key];
+      const row = document.createElement('div');
+      row.className = 'poe-checklist-row' + (item.checked ? ' checked' : '');
+
+      const nameLabel = document.createElement('label');
+      nameLabel.className = 'poe-workload-name';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = item.checked;
+      cb.style.cssText = 'position:absolute;opacity:0;width:0;height:0;';
+      const box = document.createElement('span'); box.className = 'poe-check';
+      cb.addEventListener('change', () => {
+        item.checked = cb.checked;
+        renderPoeChecklist(); schedulePoeSave(); renderPoeDoc();
+      });
+      const text = document.createElement('span'); text.textContent = w.label;
+      nameLabel.append(cb, box, text);
+      row.appendChild(nameLabel);
+
+      const activityGroup = document.createElement('div');
+      activityGroup.className = 'poe-activity-group';
+      if (!item.checked) activityGroup.style.opacity = '0.4';
+      [['deployment', 'Deployment/Migration'], ['remote', 'Remote Guidance'], ['other', 'Other']].forEach(([val, label]) => {
+        const optLabel = document.createElement('label');
+        optLabel.className = 'poe-activity-opt';
+        const radio = document.createElement('input');
+        radio.type = 'radio'; radio.name = 'poe-activity-' + w.key; radio.value = val;
+        // Only show as checked when the workload itself is selected — otherwise
+        // every row's default activity ("deployment") reads as already chosen.
+        radio.checked = item.checked && item.activity === val;
+        radio.style.cssText = 'position:absolute;opacity:0;width:0;height:0;';
+        const rbox = document.createElement('span'); rbox.className = 'poe-check';
+        radio.addEventListener('change', () => {
+          item.activity = val;
+          item.checked = true; // picking an activity implies this workload applies
+          renderPoeChecklist(); schedulePoeSave(); renderPoeDoc();
+        });
+        optLabel.append(radio, rbox, document.createTextNode(label));
+        activityGroup.appendChild(optLabel);
+      });
+      if (item.activity === 'other') {
+        const otherInput = document.createElement('input');
+        otherInput.className = 'input poe-activity-other'; otherInput.type = 'text';
+        otherInput.placeholder = 'Descreva'; otherInput.value = item.otherText;
+        otherInput.addEventListener('input', () => { item.otherText = otherInput.value; schedulePoeSave(); debouncedRenderPoeDoc(); });
+        activityGroup.appendChild(otherInput);
+      }
+      row.appendChild(activityGroup);
+      poeChecklistEl.appendChild(row);
+    });
+    const n = WORKLOADS.filter(w => state.poe.workloads[w.key].checked).length;
+    poeChecklistSummaryEl.textContent = n === 0 ? 'Nenhum workload selecionado ainda.' : `${n} workload(s) selecionado(s).`;
+  }
+
+  // — official document replica: block builders —
+  // Colors/structure below are taken directly from the official .docx
+  // (verified in its XML): "(Required)" runs FF0000 on the black bars;
+  // Section 3 field rows are a white label cell (bold, centered) beside
+  // an E7E6E6 value cell (grey 808080 text, centered); Section 2 is a
+  // 2-column table (~33/67 split) with the instruction text only in the
+  // first row's left cell.
+  // "(Required)", "[Required]" and "(Public Sector customers in U.S and
+  // Puerto Rico only)" render in red wherever they appear in the source
+  // .docx — on black bars and inline in plain paragraphs alike.
+  const POE_RED_PATTERN = /(\(Required\)|\[Required\]|\(Public Sector customers in U\.S and Puerto Rico only\))/gi;
+  function poeRedifyInto(el, text) {
+    let lastIndex = 0, m;
+    POE_RED_PATTERN.lastIndex = 0;
+    while ((m = POE_RED_PATTERN.exec(text))) {
+      if (m.index > lastIndex) el.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+      const span = document.createElement('span'); span.style.color = '#FF0000'; span.textContent = m[0];
+      el.appendChild(span);
+      lastIndex = m.index + m[0].length;
+    }
+    el.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+  function poeP(text, bold) { const p = document.createElement('p'); if (bold) p.style.fontWeight = '700'; poeRedifyInto(p, text); return p; }
+  function poeTitleBar(text) { const d = document.createElement('div'); d.className = 'poe-title-bar'; d.textContent = text; return d; }
+  function poeSectionBar(text) {
+    const d = document.createElement('div'); d.className = 'poe-section-bar';
+    poeRedifyInto(d, text);
+    return d;
+  }
+  function poeBullets(items) {
+    const ul = document.createElement('ul'); ul.className = 'poe-scope-list';
+    items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    return ul;
+  }
+  // items: array of plain strings (rendered as paragraphs) or
+  // { bullet: [..] } objects (rendered as one <ul> at that position) —
+  // matches the source, where only some lines in this box are bulleted.
+  function poeIntroBox(items) {
+    const d = document.createElement('div'); d.className = 'poe-intro-box';
+    items.forEach(item => {
+      if (item && typeof item === 'object' && item.bullet) d.appendChild(poeBullets(item.bullet));
+      else d.appendChild(poeP(item));
+    });
+    return d;
+  }
+  function poeInstructions(title, bulletParas, recommendedText, exampleColumns) {
+    const wrap = document.createElement('div');
+    const bar = document.createElement('div'); bar.className = 'poe-instructions-bar'; bar.textContent = title;
+    const box = document.createElement('div'); box.className = 'poe-instructions-box';
+    box.appendChild(poeBullets(bulletParas));
+    box.appendChild(poeP(recommendedText));
+    wrap.append(bar, box);
+    if (exampleColumns) {
+      const cols = document.createElement('div'); cols.className = 'poe-list-cols';
+      exampleColumns.forEach(colItems => cols.appendChild(poeBullets(colItems)));
+      wrap.appendChild(cols);
+    }
+    return wrap;
+  }
+  function poeBox(checked) {
+    const s = document.createElement('span'); s.className = 'poe-box' + (checked ? ' on' : '');
+    return s;
+  }
+  function poeFieldBlock(label, value) {
+    const row = document.createElement('div'); row.className = 'poe-field-row first';
+    const l = document.createElement('div'); l.className = 'label-col'; l.textContent = label;
+    const v = document.createElement('div'); v.className = 'value-col'; v.textContent = value || '';
+    row.append(l, v);
+    return row;
+  }
+  function poeAckBlock(sectionTitle, note) {
+    const wrap = document.createElement('div');
+    wrap.append(poeSectionBar(sectionTitle));
+    const box = document.createElement('div'); box.className = 'poe-section-body';
+    box.appendChild(poeP(note));
+    const sign = document.createElement('div'); sign.className = 'poe-sign-line';
+    sign.innerHTML = '<span>Customer Signature</span><span>Date Signed</span>';
+    box.appendChild(sign);
+    wrap.appendChild(box);
+    return wrap;
+  }
+  // Section 2 is one 2-column table (~33/67 split) in the source: the
+  // instruction text only occupies the left cell of the FIRST row: every
+  // other row (each week, the Gantt image) leaves that cell blank so the
+  // vertical divider just continues down, exactly as in the .docx.
+  function poeScopeRow(isFirst, group, extraNode) {
+    const row = document.createElement('div'); row.className = 'poe-scope-row';
+    const instr = document.createElement('div'); instr.className = 'instruction-col';
+    if (isFirst) {
+      instr.appendChild(document.createTextNode('Describe in '));
+      const em = document.createElement('span'); em.style.cssText = 'font-weight:700;font-style:italic;'; em.textContent = 'detail';
+      instr.appendChild(em);
+      instr.appendChild(document.createTextNode(' the work performed following the product and activity selection in Section 1:'));
+    }
+    const content = document.createElement('div'); content.className = 'content-col';
+    if (group) {
+      if (group.heading) {
+        const h = document.createElement('div'); h.className = 'poe-scope-heading'; h.textContent = group.heading;
+        content.appendChild(h);
+      }
+      if (group.bulleted) content.appendChild(poeBullets(group.items));
+      else group.items.forEach(it => content.appendChild(poeP(it)));
+    }
+    if (extraNode) content.appendChild(extraNode);
+    row.append(instr, content);
+    return row;
+  }
+  function poeGanttImg() {
+    const img = document.createElement('img');
+    img.src = POE_GANTT_DATA_URI;
+    img.className = 'poe-gantt-img';
+    img.alt = 'Cronograma padrão do projeto (Ponto Final Moderno)';
+    return img;
+  }
+  function poeWorkloadRow(w, item) {
+    const row = document.createElement('div'); row.className = 'poe-row';
+    const nameCol = document.createElement('div'); nameCol.className = 'name-col';
+    nameCol.appendChild(poeBox(item.checked));
+    nameCol.appendChild(document.createTextNode(w.label));
+    const activityCol = document.createElement('div'); activityCol.className = 'activity-col';
+    const mk = (label, on) => {
+      const span = document.createElement('span');
+      span.style.cssText = 'display:inline-flex;align-items:center;gap:4px;';
+      span.appendChild(poeBox(on));
+      span.appendChild(document.createTextNode(label));
+      return span;
+    };
+    activityCol.appendChild(mk('Deployment/Migration', item.checked && item.activity === 'deployment'));
+    activityCol.appendChild(mk('Remote Guidance', item.checked && item.activity === 'remote'));
+    activityCol.appendChild(mk('Other: ' + (item.activity === 'other' ? item.otherText : ''), item.checked && item.activity === 'other'));
+    row.append(nameCol, activityCol);
+    return row;
+  }
+
+  function buildModernWorkBlocks() {
+    const blocks = [];
+    const cover = document.createElement('div');
+    cover.append(
+      poeTitleBar('POE Template – Modern Work & Security Usage'),
+      poeIntroBox([
+        'POE gives Microsoft the opportunity to validate that partners have been involved in driving Usage growth. POE ensures the right partners are acknowledged for investing their resources to drive world class solutions for our shared customers and prospects. The purpose of this template is to assist Partners in providing POE that contains all requisite elements of an approvable claim.',
+        'If you have existing documentation that contains the elements of valid POE it can be submitted in lieu or in support of this template.',
+        { bullet: [
+          'Use of this template is recommended when submitting CPOR claims for Modern Work and Security Usage association.',
+          'Alternate POE documents are acceptable if all requisite elements are included.'
+        ] },
+        'The workloads included in this form are for usage recognition only.'
+      ])
+    );
+    blocks.push(cover);
+    blocks.push(poeInstructions(
+      'POE Template Instructions:',
+      [
+        'Section 1: Select product(s)/workload(s) and activity type.',
+        'Section 2: Provide details on engagement activities & supporting documentation.',
+        'Section 3: Fill out all information in the Partner and Customer Information section. Ensure that the Customer information matches the information entered in your CPOR claim in Partner Center.',
+        'Section 3.1: Provide valid customer acknowledgment* dated within 12 months of claim submission.',
+        '*Physically or electronically signed proof of execution documentation by customer (Printed name, signature, title, and date). Please note the electronic signature needs to be an e-signature with a valid certificate of authenticity. This can also be an e-mail confirmation describing the work. Original .msg email communication between Partner and Customer showing clear proof of work activity and customer approval.'
+      ],
+      'Recommended: Provide supporting documentation demonstrating your claimed work activity. If the nature of the work changes over the course of the engagement, be sure to provide updated POE to maintain CPOR association. Examples of acceptable materials include but are not limited to:',
+      [
+        ['Statement of work', 'Solution architecture', 'Service tickets'],
+        ['Service logs', 'Visual diagrams', 'BREP Partner'],
+        ['Deployment roadmaps', 'Migration plans', 'Service descriptions'],
+        ['Milestones', 'Timelines', 'User counts']
+      ]
+    ));
+
+    blocks.push(poeSectionBar('Section 1 (Required): Select product(s)/workload(s) and activity type'));
+    WORKLOADS.forEach(w => blocks.push(poeWorkloadRow(w, state.poe.workloads[w.key])));
+
+    blocks.push(poeSectionBar('Section 2 (Required): Scope of Work Details'));
+    const scopeGroups = computeScopeGroups();
+    blocks.push(poeScopeRow(true, scopeGroups[0]));
+    scopeGroups.slice(1).forEach(group => blocks.push(poeScopeRow(false, group)));
+    blocks.push(poeScopeRow(false, null, poeGanttImg()));
+
+    blocks.push(poeSectionBar('Section 3 (Required): Partner and Customer Contact Information'));
+    blocks.push(poeFieldBlock('Partner Company Name', state.poe.partner));
+    blocks.push(poeFieldBlock('Customer Company Name', state.poe.customer));
+    blocks.push(poeFieldBlock('Customer Signatory Name (printed)', state.poe.signatoryName));
+    blocks.push(poeFieldBlock('Customer Signatory Role or Job Title', state.poe.signatoryRole));
+    blocks.push(poeFieldBlock('Engagement Start and End Date', formatDateRange(state.poe.startDate, state.poe.endDate)));
+
+    blocks.push(poeAckBlock('Section 3.1 (Required): Customer Acknowledgment*',
+      '*Customer acknowledgement must be dated within 12 months of claim submission. Applicable for Dates Signed field below.'));
+
+    const pubSector = document.createElement('div');
+    pubSector.append(poeSectionBar('Section 3.2 Public Sector Disclosure (Public Sector customers in U.S and Puerto Rico only)'));
+    const psBody = document.createElement('div'); psBody.className = 'poe-section-body';
+    psBody.appendChild(poeP('By signing this document, the customer listed in Section 3.1 acknowledges that partner listed in Section 1 will seek association to our Microsoft Customer Tenant ID under the Microsoft Partner Incentives program, and that as part of their association, the partner may receive monetary fees, commission or compensation from Microsoft in connection with the services provided to the customer.'));
+    psBody.appendChild(poeP('(Public Sector) Customer initials here: _____________'));
+    pubSector.appendChild(psBody);
+    blocks.push(pubSector);
+
+    return blocks;
+  }
+
+  // Faithful to the source .docx (this page is untouched by the partner's
+  // own edits, so it's reproduced verbatim): 3 bullets in the intro (not
+  // 2), plain (non-bulleted) Section 1/2/3 instructions, bold "3.N –
+  // [Required]" headers, and a single-column 6-item list at 3.6 (not the
+  // 4-column grid the Modern Work page uses).
+  function buildBizAppsBlocks() {
+    const blocks = [];
+    const cover = document.createElement('div');
+    cover.append(
+      poeTitleBar('POE Template - Business Applications'),
+      poeIntroBox([
+        'POE gives Microsoft the opportunity to validate that partners have been involved in driving Pre-Sales work that leads to a transaction. Please leverage this POE document if you are claiming for usage. POE ensures the right partners are rewarded for investing their resources to drive world class solutions for our shared customers and prospects. The purpose of this template is to assist Partners in providing POE that contains all requisite elements of an approvable claim.',
+        'If you have existing documentation that contains the elements of valid POE it can be submitted in lieu or in support of this template.',
+        { bullet: [
+          'Usage of this template is recommended when submitting Claiming Partner of Record (CPOR) claims for Biz Apps Presales Advisor incentive association and usage only association.',
+          'Alternative POE documents are acceptable if all requisite elements are included.',
+          'Program and policy resources available here: https://partner.microsoft.com/membership/partner-incentives'
+        ] }
+      ])
+    );
+    blocks.push(cover);
+
+    const instr = document.createElement('div');
+    instr.append((() => { const d = document.createElement('div'); d.className = 'poe-instructions-bar'; d.textContent = 'POE Template Instructions:'; return d; })());
+    const instrBox = document.createElement('div'); instrBox.className = 'poe-instructions-box';
+    [
+      'Section 1: Fill out all information in the Partner and Customer Information section. Ensure that the Customer information matches the information entered in your CPOR claim in Partner Center.',
+      'Section 2: Provide valid customer acknowledgment dated within 12 months of claim submission.',
+      'Section 3: Provide details on engagement activities & supporting documentation.'
+    ].forEach(t => instrBox.appendChild(poeP(t)));
+    instr.appendChild(instrBox);
+    blocks.push(instr);
+
+    const s1 = document.createElement('div');
+    s1.append(poeSectionBar('Section 1: Partner and Customer Contact Information'));
+    const denote = document.createElement('div'); denote.className = 'poe-section-body';
+    denote.appendChild(poeP('*Denotes optional fields. All fields are required unless stated otherwise.'));
+    s1.appendChild(denote);
+    blocks.push(s1);
+    // This whole page is optional and untouched unless it's genuinely a
+    // Business Applications engagement — it must never auto-fill from the
+    // Modern Work fields above, even though the field names are the same.
+    blocks.push(poeFieldBlock('Partner Company Name', ''));
+    blocks.push(poeFieldBlock('Customer Company Name', ''));
+    blocks.push(poeFieldBlock('Customer Signatory Name (printed)', ''));
+    blocks.push(poeFieldBlock('Customer Signatory Role or Job Title', ''));
+    blocks.push(poeFieldBlock('Customer Domain Name', state.poe.biz.domain));
+    blocks.push(poeFieldBlock('Customer Tenant ID', state.poe.biz.tenant));
+    blocks.push(poeFieldBlock('* Project Name', state.poe.biz.project));
+
+    blocks.push(poeAckBlock('Section 2: Customer Acknowledgment*',
+      '*Customer acknowledgement must be dated within 12 months of claim submission. Applicable for Dates Signed field below.'));
+
+    // No black bar over this disclosure on this page — it's plain body
+    // text right after the signature line, unlike Section 3.2 on page 1.
+    // "Public Sector Disclosure" carries a real yellow highlight in the
+    // source .docx (confirmed in its XML: bold + w:highlight=yellow) —
+    // unlike its counterpart on the Modern Work page, which is a section
+    // bar rather than body text.
+    const pubSector2 = document.createElement('div'); pubSector2.className = 'poe-section-body';
+    const pubP = document.createElement('p');
+    const markSpan = document.createElement('mark'); markSpan.className = 'poe-highlight'; markSpan.textContent = 'Public Sector Disclosure ';
+    pubP.appendChild(markSpan);
+    poeRedifyInto(pubP, '(Public Sector customers in U.S and Puerto Rico only): By signing this document, the customer listed in Section 1 acknowledges that partner listed in Section 1 will seek association to our Microsoft Customer Tenant ID under the Microsoft Partner Incentives program, and that as part of their association, the partner may receive monetary fees, commission or compensation from Microsoft in connection with the services provided to the customer.');
+    pubSector2.appendChild(pubP);
+    pubSector2.appendChild(poeP('(Public Sector) Customer initials here: _____________'));
+    blocks.push(pubSector2);
+
+    blocks.push(poeSectionBar('Section 3: Scope of Work Details'));
+
+    const s31 = document.createElement('div'); s31.className = 'poe-section-body';
+    s31.appendChild(poeP('3.1 – [Required] Customer Subscription Information Disclosure', true));
+    s31.appendChild(poeP('By signing this document on Page 1, the customer listed in Section 1, Page 1 agrees that Microsoft can share customer subscription information with the partner listed in Section 1, Page 1 only for the purposes of becoming claiming partner of record.'));
+    s31.appendChild(poeP('Customer initials here: ______'));
+    blocks.push(s31);
+
+    // 3.2/3.3/3.4 are genuine fill-in questions in the source: question
+    // text on the left, a blank answer cell on the right (filled in only
+    // once the corresponding optional field above has something in it —
+    // otherwise it stays blank, matching the partner's real practice).
+    function poeBizAnswerRow(build, value) {
+      const row = document.createElement('div'); row.className = 'poe-qa-row';
+      const q = document.createElement('div'); q.className = 'q-col';
+      build(q);
+      const a = document.createElement('div'); a.className = 'a-col';
+      if (value && value.trim()) a.appendChild(poeP(value));
+      row.append(q, a);
+      return row;
+    }
+
+    blocks.push(poeBizAnswerRow(q => {
+      q.appendChild(poeP('3.2 – [Required] Provide Business Applications workload name(s) and   subscription IDs.', true));
+      q.appendChild(poeBullets(['Pre-Sales: Please note that we only reward only one partner as the Claiming Partner of Record (CPOR). This is awarded to the partner who can prove through their POE that they were most influential in driving the platform sale.']));
+    }, state.poe.biz.workloads));
+
+    blocks.push(poeBizAnswerRow(q => {
+      q.appendChild(poeP('3.3 – [Required] Describe the customer’s specific business need and/or benefit for the solution using the claimed product(s)/workload(s)', true));
+    }, state.poe.biz.need));
+
+    blocks.push(poeBizAnswerRow(q => {
+      q.appendChild(poeP('3.4 – [Required] Describe or provide documentation for:', true));
+      q.appendChild(poeBullets([
+        'For Pre-Sales: Activities and work which led to the seats being purchased under the agreement',
+        'For Post-Sales: Ongoing work with your customer'
+      ]));
+    }, state.poe.biz.activities));
+
+    const s36 = document.createElement('div'); s36.className = 'poe-section-body';
+    s36.appendChild(poeP('3.6 – [Recommended]: Provide supporting documentation demonstrating your claimed work activity. If the nature of the work changes over the course of the engagement, be sure to provide updated POE to maintain POR association. Examples of acceptable materials include but are not limited to:'));
+    s36.appendChild(poeBullets(['Statement of work', 'Solution architecture', 'Service tickets', 'Support logs', 'Visual diagrams', 'BREP Partner']));
+    blocks.push(s36);
+
+    return blocks;
+  }
+
+  // — pagination + render —
+  const POE_PAGE_CONTENT_WIDTH = 816 - 96;
+  const POE_PAGE_MAX_CONTENT_HEIGHT = 900;
+
+  function measureAndPaginate(blocks) {
+    const probe = document.createElement('div');
+    probe.className = 'poe-doc';
+    probe.style.cssText = `position:fixed;left:-99999px;top:0;width:${POE_PAGE_CONTENT_WIDTH}px;`;
+    document.body.appendChild(probe);
+    blocks.forEach(b => probe.appendChild(b));
+    const heights = blocks.map(b => b.getBoundingClientRect().height);
+    blocks.forEach(b => probe.removeChild(b));
+    document.body.removeChild(probe);
+
+    const pages = [];
+    let current = [], h = 0;
+    blocks.forEach((b, i) => {
+      const bh = heights[i];
+      if (current.length && h + bh > POE_PAGE_MAX_CONTENT_HEIGHT) { pages.push(current); current = []; h = 0; }
+      current.push(b); h += bh;
+    });
+    if (current.length) pages.push(current);
+    return pages;
+  }
+
+  function buildPoeLogo() {
+    const wrap = document.createElement('div'); wrap.className = 'poe-logo';
+    const img = document.createElement('img');
+    img.src = POE_LOGO_DATA_URI; img.alt = 'Microsoft';
+    wrap.appendChild(img);
+    return wrap;
+  }
+
+  function buildPoePageShell(index, total, footerLabel) {
+    const page = document.createElement('div'); page.className = 'poe-page';
+    page.appendChild(buildPoeLogo());
+    const content = document.createElement('div');
+    page.appendChild(content);
+    const footer = document.createElement('div'); footer.className = 'poe-footer';
+    footer.textContent = `${footerLabel} — Página ${index} de ${total}`;
+    page.appendChild(footer);
+    return { page, content };
+  }
+
+  function renderPoeDoc() {
+    const mwPages = measureAndPaginate(buildModernWorkBlocks());
+    const bizPages = measureAndPaginate(buildBizAppsBlocks());
+    const total = mwPages.length + bizPages.length;
+
+    poeDocEl.innerHTML = '';
+    let idx = 0;
+    mwPages.forEach(group => {
+      idx++;
+      const { page, content } = buildPoePageShell(idx, total, 'Online Services Usage M365 POE Template');
+      group.forEach(b => content.appendChild(b));
+      poeDocEl.appendChild(page);
+    });
+    bizPages.forEach(group => {
+      idx++;
+      const { page, content } = buildPoePageShell(idx, total, 'Business Applications POE Template');
+      group.forEach(b => content.appendChild(b));
+      poeDocEl.appendChild(page);
+    });
+  }
+  const debouncedRenderPoeDoc = debounce(renderPoeDoc, 200);
+
+  // — save / load —
+  function setPoeSaveStatus(mode, text) {
+    poeSaveStatusEl.className = 'save-status' + (mode ? ' ' + mode : '');
+    poeSaveStatusTextEl.textContent = text;
+  }
+  function schedulePoeSave() {
+    if (poeSaveTimer) clearTimeout(poeSaveTimer);
+    if (!state.poe.customer.trim()) { setPoeSaveStatus('', 'Preencha a empresa cliente para salvar automaticamente'); return; }
+    if (!db) { setPoeSaveStatus('', 'Salvamento indisponível nesta visualização'); return; }
+    setPoeSaveStatus('busy', 'Salvando…');
+    poeSaveTimer = setTimeout(doPoeSave, 1200);
+  }
+  function subscribePoeStatus() {
+    if (!state.poe.customer.trim()) setPoeSaveStatus('', 'Preencha a empresa cliente para salvar automaticamente');
+  }
+
+  async function doPoeSave() {
+    const customer = state.poe.customer.trim();
+    if (!customer || !db) return;
+    const docId = state.poe.docId || ('poe-' + slugify(customer));
+    const body = {
+      type: 'poe', name: 'Engagement POE ' + customer, empresa: customer,
+      partner: state.poe.partner, customer,
+      signatoryName: state.poe.signatoryName, signatoryRole: state.poe.signatoryRole,
+      startDate: state.poe.startDate, endDate: state.poe.endDate,
+      licenseQty: state.poe.licenseQty, licenseName: state.poe.licenseName,
+      workloads: state.poe.workloads, scopeText: state.poe.scopeText, scopeTouched: state.poe.scopeTouched,
+      biz: state.poe.biz, updatedAt: new Date().toISOString()
+    };
+    try {
+      await db.doc('documents/' + docId).set(body);
+      state.poe.docId = docId;
+      setPoeSaveStatus('ok', 'Salvo automaticamente');
+    } catch (e) {
+      setPoeSaveStatus('err', 'Não foi possível salvar');
+    }
+  }
+
+  function fillPoeFormFromState() {
+    poePartnerEl.value = state.poe.partner;
+    poeCustomerEl.value = state.poe.customer;
+    poeSignatoryNameEl.value = state.poe.signatoryName;
+    poeSignatoryRoleEl.value = state.poe.signatoryRole;
+    poeStartDateEl.value = state.poe.startDate;
+    poeEndDateEl.value = state.poe.endDate;
+    poeLicenseQtyEl.value = state.poe.licenseQty;
+    poeLicenseNameEl.value = state.poe.licenseName;
+    poeScopeTextEl.value = state.poe.scopeText;
+    poeBizDomainEl.value = state.poe.biz.domain;
+    poeBizTenantEl.value = state.poe.biz.tenant;
+    poeBizProjectEl.value = state.poe.biz.project;
+    poeBizWorkloadsEl.value = state.poe.biz.workloads;
+    poeBizNeedEl.value = state.poe.biz.need;
+    poeBizActivitiesEl.value = state.poe.biz.activities;
+  }
+
+  async function loadPoeDocument(docId) {
+    if (!db) return;
+    const snap = await db.doc('documents/' + docId).get().catch(() => null);
+    if (!snap || !snap.exists) return;
+    const data = snap.data();
+    state.poe.docId = docId;
+    state.poe.partner = data.partner || 'Selbetti';
+    state.poe.customer = data.customer || data.empresa || '';
+    state.poe.signatoryName = data.signatoryName || '';
+    state.poe.signatoryRole = data.signatoryRole || 'GERENTE';
+    state.poe.startDate = data.startDate || '';
+    state.poe.endDate = data.endDate || '';
+    state.poe.licenseQty = data.licenseQty || '';
+    state.poe.licenseName = data.licenseName || '';
+    WORKLOADS.forEach(w => {
+      const saved = (data.workloads || {})[w.key];
+      state.poe.workloads[w.key] = saved
+        ? { checked: !!saved.checked, activity: saved.activity || 'deployment', otherText: saved.otherText || '' }
+        : { checked: false, activity: 'deployment', otherText: '' };
+    });
+    state.poe.scopeText = data.scopeText || computePoeScopeDefault();
+    state.poe.scopeTouched = !!data.scopeTouched;
+    state.poe.biz = Object.assign({ domain: '', tenant: '', project: '', workloads: '', need: '', activities: '' }, data.biz || {});
+
+    fillPoeFormFromState();
+    setActiveTab('engagement-poe');
+    renderPoeChecklist(); renderPoeDoc();
+    setPoeSaveStatus('ok', 'Aberto — pronto para editar');
+  }
+
+  // — PDF export —
+  // One-click "Baixar PDF" from the Documentos salvos list — no need to
+  // open the document into the editor first. Briefly swaps the live POE
+  // state for the saved snapshot (the Engagement POE tab needs real
+  // layout for html2canvas to capture it), generates the PDF, then
+  // restores whatever the user had open before this was clicked.
+  async function downloadSavedPoePdf(docId, buttonEl) {
+    const doc = state.savedDocs.find(d => d.id === docId);
+    if (!doc) return;
+    const previousPoe = state.poe;
+    const previousTab = state.activeTab;
+    const originalLabel = buttonEl.textContent;
+    buttonEl.disabled = true;
+    buttonEl.textContent = 'Gerando PDF…';
+
+    state.poe = {
+      docId: doc.id,
+      partner: doc.partner || '',
+      customer: doc.customer || doc.empresa || '',
+      signatoryName: doc.signatoryName || '',
+      signatoryRole: doc.signatoryRole || '',
+      startDate: doc.startDate || '',
+      endDate: doc.endDate || '',
+      licenseQty: doc.licenseQty || '',
+      licenseName: doc.licenseName || '',
+      workloads: Object.fromEntries(WORKLOADS.map(w => {
+        const saved = (doc.workloads || {})[w.key];
+        return [w.key, saved
+          ? { checked: !!saved.checked, activity: saved.activity || 'deployment', otherText: saved.otherText || '' }
+          : { checked: false, activity: 'deployment', otherText: '' }];
+      })),
+      scopeText: doc.scopeText || '',
+      scopeTouched: true,
+      biz: Object.assign({ domain: '', tenant: '', project: '', workloads: '', need: '', activities: '' }, doc.biz || {})
+    };
+    setActiveTab('engagement-poe');
+    renderPoeDoc();
+    // Let the tab actually paint before html2canvas captures it.
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    try {
+      await downloadPoePdf();
+    } finally {
+      state.poe = previousPoe;
+      renderPoeDoc();
+      setActiveTab(previousTab);
+      buttonEl.disabled = false;
+      buttonEl.textContent = originalLabel;
+    }
+  }
+
+  async function downloadPoePdf() {
+    if (!window.jspdf || !window.html2canvas) {
+      poeDownloadNoteEl.textContent = 'As bibliotecas de geração de PDF não carregaram. Tente recarregar a página.';
+      poeDownloadNoteEl.className = 'save-note err'; poeDownloadNoteEl.hidden = false;
+      return;
+    }
+    poeDownloadBtnEl.disabled = true;
+    const label = poeDownloadBtnEl.lastChild;
+    const originalLabel = label.textContent;
+    label.textContent = ' Gerando PDF…';
+    poeDownloadNoteEl.hidden = true;
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'pt', format: 'letter' });
+      const pageEls = Array.from(poeDocEl.querySelectorAll('.poe-page'));
+      for (let i = 0; i < pageEls.length; i++) {
+        const canvas = await window.html2canvas(pageEls[i], { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        if (i > 0) pdf.addPage('letter');
+        pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792);
+      }
+      const blob = pdf.output('blob');
+      const filename = `Engagement-POE-${slugify(state.poe.customer || 'documento')}.pdf`;
+
+      const inClaudeViewer = !!window.claude;
+      const downloads = inClaudeViewer ? await window.claude.use('downloads') : null;
+      if (downloads) {
+        await downloads.save({ filename, data: blob });
+        poeDownloadNoteEl.textContent = 'PDF gerado e enviado para download.';
+        poeDownloadNoteEl.className = 'save-note ok';
+      } else if (!inClaudeViewer) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        poeDownloadNoteEl.textContent = 'PDF baixado.';
+        poeDownloadNoteEl.className = 'save-note ok';
+      } else {
+        poeDownloadNoteEl.textContent = 'Download indisponível nesta visualização.';
+        poeDownloadNoteEl.className = 'save-note err';
+      }
+    } catch (e) {
+      poeDownloadNoteEl.textContent = 'Não foi possível gerar o PDF agora. Tente novamente.';
+      poeDownloadNoteEl.className = 'save-note err';
+    } finally {
+      poeDownloadNoteEl.hidden = false;
+      poeDownloadBtnEl.disabled = false;
+      label.textContent = originalLabel;
+    }
+  }
+
+  // — wiring —
+  poePartnerEl.addEventListener('input', () => { state.poe.partner = poePartnerEl.value; debouncedRenderPoeDoc(); schedulePoeSave(); });
+  poeCustomerEl.addEventListener('input', () => { state.poe.customer = poeCustomerEl.value; debouncedRenderPoeDoc(); schedulePoeSave(); });
+  poeSignatoryNameEl.addEventListener('input', () => { state.poe.signatoryName = poeSignatoryNameEl.value; debouncedRenderPoeDoc(); schedulePoeSave(); });
+  poeSignatoryRoleEl.addEventListener('input', () => { state.poe.signatoryRole = poeSignatoryRoleEl.value; debouncedRenderPoeDoc(); schedulePoeSave(); });
+  poeStartDateEl.addEventListener('input', () => { state.poe.startDate = poeStartDateEl.value; renderPoeDoc(); schedulePoeSave(); });
+  poeEndDateEl.addEventListener('input', () => { state.poe.endDate = poeEndDateEl.value; renderPoeDoc(); schedulePoeSave(); });
+
+  function regenerateScopeIfUntouched() {
+    if (!state.poe.scopeTouched) {
+      state.poe.scopeText = computePoeScopeDefault();
+      poeScopeTextEl.value = state.poe.scopeText;
+    }
+  }
+  poeLicenseQtyEl.addEventListener('input', () => {
+    state.poe.licenseQty = poeLicenseQtyEl.value;
+    regenerateScopeIfUntouched(); debouncedRenderPoeDoc(); schedulePoeSave();
+  });
+  poeLicenseNameEl.addEventListener('input', () => {
+    state.poe.licenseName = poeLicenseNameEl.value;
+    regenerateScopeIfUntouched(); debouncedRenderPoeDoc(); schedulePoeSave();
+  });
+  poeScopeTextEl.addEventListener('input', () => {
+    state.poe.scopeTouched = true;
+    state.poe.scopeText = poeScopeTextEl.value;
+    debouncedRenderPoeDoc(); schedulePoeSave();
+  });
+  poeScopeResetBtnEl.addEventListener('click', () => {
+    state.poe.scopeTouched = false;
+    state.poe.scopeText = computePoeScopeDefault();
+    poeScopeTextEl.value = state.poe.scopeText;
+    renderPoeDoc(); schedulePoeSave();
+  });
+
+  poeBizAppsHeadEl.addEventListener('click', () => {
+    const open = poeBizAppsBodyEl.hidden;
+    poeBizAppsBodyEl.hidden = !open;
+    poeBizAppsHeadEl.classList.toggle('open', open);
+  });
+  [
+    [poeBizDomainEl, 'domain'], [poeBizTenantEl, 'tenant'], [poeBizProjectEl, 'project'],
+    [poeBizWorkloadsEl, 'workloads'], [poeBizNeedEl, 'need'], [poeBizActivitiesEl, 'activities']
+  ].forEach(([el, key]) => {
+    el.addEventListener('input', () => { state.poe.biz[key] = el.value; debouncedRenderPoeDoc(); schedulePoeSave(); });
+  });
+
+  poeDownloadBtnEl.addEventListener('click', downloadPoePdf);
+
+  // — init —
+  (function setDefaultPoeDates() {
+    const end = new Date(); end.setMonth(end.getMonth() - 2);
+    const start = new Date(end); start.setMonth(start.getMonth() - 1);
+    const iso = d => d.toISOString().slice(0, 10);
+    state.poe.startDate = iso(start);
+    state.poe.endDate = iso(end);
+  })();
+  state.poe.scopeText = computePoeScopeDefault();
+  fillPoeFormFromState();
+  renderPoeChecklist();
+  renderPoeDoc();
+})();
+</script>
