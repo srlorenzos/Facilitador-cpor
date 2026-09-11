@@ -14,11 +14,11 @@ Cole o resultado bruto do tenantidfinder.com (ou do whatismytenantid.com) e a fe
 
 ## Portal / Links
 
-Página inicial com os acessos e ferramentas do dia a dia organizados por categoria (wiki, aprendizado, senhas, relatórios, suporte, projetos) — como uma intranet simples.
+Página inicial com os acessos e ferramentas do dia a dia organizados por categoria (wiki, aprendizado, senhas, relatórios, suporte, projetos) — como uma intranet simples. Título, subtítulo e todos os links (categoria, ícone, título, descrição, URL) são editáveis em Configurações → Portal / Links, sem precisar alterar código — útil para quem administra o site publicado manter os acessos atualizados.
 
 ## Configurações
 
-Tema (claro/escuro/automático), cor de destaque, tamanho de fonte, densidade das tabelas, equipe da consultoria (nomes usados nos seletores do Checklist), padrões de preenchimento por tipo de documento, comportamento do app (aba inicial, ordenação e paginação de Documentos salvos, aviso ao sair com alterações não salvas), confirmação antes de excluir, e exportação/importação de todas essas preferências em um arquivo.
+Tema (claro/escuro/automático), cor de destaque, tamanho de fonte, densidade das tabelas, equipe da consultoria (nomes usados nos seletores do Checklist), padrões de preenchimento por tipo de documento, comportamento do app (aba inicial, ordenação e paginação de Documentos salvos, aviso ao sair com alterações não salvas), confirmação antes de excluir, os links do Portal, e exportação/importação de todas essas preferências em um arquivo.
 
 ## Como usar
 
