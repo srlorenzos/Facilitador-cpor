@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhotoMail — Enviar fotos por e-mail</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">PhotoMail</div>
+</div>
+
+<div class="page">
+  <h1>Enviar fotos por e-mail</h1>
+  <p class="text-muted page-lede">Escolha os destinatários, monte a mensagem a partir de um modelo (ou envie fotos livremente) e pré-visualize antes de enviar.</p>
+
+  <!-- Destinatários -->
+  <div class="section">
+    <h3>Destinatários</h3>
+    <hr class="hr">
+    <div id="recipient-list" class="recipient-list"></div>
+
+    <div class="add-recipient">
+      <div class="field">
+        <label for="new-recipient-name">Nome (opcional)</label>
+        <input id="new-recipient-name" class="input" type="text" placeholder="Ex.: Cliente XPTO">
+      </div>
+      <div class="field">
+        <label for="new-recipient-email">E-mail</label>
+        <input id="new-recipient-email" class="input" type="email" placeholder="nome@empresa.com">
+      </div>
+      <button id="add-recipient-btn" class="btn btn-secondary" style="align-self:flex-end;">+ Adicionar e-mail</button>
+      <div id="add-recipient-error" class="add-recipient-error" hidden></div>
+    </div>
+  </div>
+
+  <!-- Modelo de mensagem -->
+  <div class="section">
+    <h3>Modelo de mensagem</h3>
+    <hr class="hr">
+    <div id="template-switch" class="seg">
+      <label class="seg-opt">
+        <input type="radio" name="template" value="livre">
+        <span>Mensagem livre</span>
+      </label>
+      <label class="seg-opt">
+        <input type="radio" name="template" value="conclusao-projeto">
+        <span>Conclusão de Projeto — Microsoft 365</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Modelo: mensagem livre -->
+  <div id="template-livre" class="section">
+    <div class="field">
+      <label for="livre-message">Mensagem (opcional)</label>
+      <textarea id="livre-message" class="input" rows="3" placeholder="Escreva uma mensagem para acompanhar as fotos..."></textarea>
+    </div>
+
+    <div id="livre-dropzone" class="dropzone" style="margin-top:var(--space-4);" tabindex="0" role="button" aria-label="Selecionar fotos">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12"></path>
+        <path d="m17 8-5-5-5 5"></path>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      </svg>
+      <div class="dropzone-title">Arraste fotos aqui ou clique para selecionar</div>
+      <div class="text-muted dropzone-hint">JPG ou PNG</div>
+    </div>
+    <input id="livre-file-input" type="file" accept="image/*" multiple style="display:none;">
+    <div id="livre-photo-grid" class="photo-grid" hidden></div>
+  </div>
+
+  <!-- Modelo: conclusão de projeto -->
+  <div id="template-conclusao" class="section" hidden>
+    <div class="field-grid">
+      <div class="field">
+        <label for="empresa-input">Empresa</label>
+        <input id="empresa-input" class="input" type="text" placeholder="Ex.: AMCOM">
+      </div>
+      <div class="field">
+        <label for="dominio-input">Domínio</label>
+        <input id="dominio-input" class="input" type="text" placeholder="Ex.: amcom.com.br">
+      </div>
+    </div>
+    <div class="field" style="margin-top:var(--space-3);">
+      <label for="licencas-input">Licenças</label>
+      <textarea id="licencas-input" class="input" rows="3" placeholder="Ex.: 50x Microsoft 365 Business Premium"></textarea>
+    </div>
+    <div class="field" style="margin-top:var(--space-3);">
+      <label for="subject-input">Assunto do e-mail</label>
+      <input id="subject-input" class="input" type="text">
+    </div>
+
+    <h4 style="margin-top:var(--space-6);">Relatório de uso</h4>
+    <p class="text-muted" style="font-size:13px;">Envie as evidências de cada produto na seção correspondente — cada imagem entra automaticamente embaixo do título certo no e-mail.</p>
+    <div id="section-cards" class="section-cards"></div>
+  </div>
+
+  <hr class="hr" style="margin-top:var(--space-8);">
+  <div class="footer-row">
+    <span id="file-count" class="tag">Nenhuma foto selecionada</span>
+    <button id="preview-btn" class="btn btn-primary" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+      <span>Visualizar e-mail</span>
+    </button>
+  </div>
+</div>
+
+<!-- Preview do e-mail -->
+<div id="dialog-backdrop" class="dialog-backdrop" hidden>
+  <div class="dialog dialog-lg" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+    <div id="dialog-title" class="dialog-title">Pré-visualização do e-mail</div>
+    <div id="email-preview" class="email-preview"></div>
+    <div class="pending-note">Este é apenas um modelo visual — nada foi enviado ainda. O envio real será habilitado em uma próxima etapa.</div>
+    <div class="dialog-actions dialog-actions-split">
+      <button id="dialog-back" class="btn btn-secondary">Voltar e editar</button>
+      <button id="dialog-close" class="btn btn-primary">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
