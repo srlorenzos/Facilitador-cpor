@@ -1,6 +1,6 @@
-// Shared Cosmos DB / Blob Storage clients for the Facilitador CPOR API.
-// Connection info comes from Static Web App application settings (never
-// committed to the repo) — see /api/README.md for the expected names.
+// Shared Cosmos DB / Blob Storage clients for the Facilitador CPOR server.
+// Connection info comes from App Service application settings (never
+// committed to the repo) — see /server/README.md for the expected names.
 
 const { CosmosClient } = require('@azure/cosmos');
 const { BlobServiceClient } = require('@azure/storage-blob');

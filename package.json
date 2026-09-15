@@ -1,0 +1,17 @@
+{
+  "name": "facilitador-cpor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Facilitador de CPOR — front-end estático + API (Cosmos DB / Blob Storage) para hospedagem no Azure App Service.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "@azure/cosmos": "^4.1.1",
+    "@azure/storage-blob": "^12.24.0"
+  }
+}

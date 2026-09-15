@@ -26,12 +26,12 @@ O front-end é um único arquivo estático (`index.html`, HTML/CSS/JS sem depend
 
 1. **Localmente**: baixe `index.html` e abra no navegador — modo somente-local (preferências no `localStorage` do navegador, sem sincronizar entre dispositivos).
 2. **Publicado como site estático simples** (GitHub Pages, Netlify, Vercel, etc.): mesma limitação do modo local — não há passo de build, mas também não há banco de dados por trás.
-3. **Publicado no Azure (produção)**: Azure Static Web Apps servindo `index.html` + a API em [`api/`](api/) (Azure Functions), com Cosmos DB (histórico de documentos e configurações da equipe) e Blob Storage (imagens anexadas). Nesse modo o salvamento é automático e sincronizado entre dispositivos — é o que fica publicado a partir deste repositório via GitHub Actions a cada push na branch principal. Veja [`api/README.md`](api/README.md) para as application settings necessárias.
+3. **Publicado no Azure (produção)**: Azure App Service (Node.js, `server.js` na raiz) servindo `index.html` + a API em [`server/`](server/), com Cosmos DB (histórico de documentos e configurações da equipe) e Blob Storage (imagens anexadas). Nesse modo o salvamento é automático e sincronizado entre dispositivos — é o que fica publicado em **https://facilitador-cpor.azurewebsites.net** a partir deste repositório via GitHub Actions a cada push na branch principal. Veja [`server/README.md`](server/README.md) para as application settings necessárias.
 
 A identificação automática por IA de qual seção cada print pertence é específica do runtime de Claude Artifacts (onde este projeto também roda, usando os mesmos `db`/`assets`) e não está disponível na hospedagem Azure — nela, a classificação é manual pelo seletor de cada imagem.
 
 ## Estrutura do repositório
 
 - `index.html` — a aplicação completa (front-end).
-- `api/` — backend Azure Functions (Cosmos DB + Blob Storage) usado na publicação no Azure.
+- `server.js`, `server/` — backend Express (Cosmos DB + Blob Storage) usado na publicação no Azure App Service.
 - `project/`, `chats/` — material do protótipo de design original que deu origem a este projeto, mantido como histórico.
