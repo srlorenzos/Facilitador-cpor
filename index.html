@@ -291,6 +291,11 @@ select.input { min-height: 30px; padding: 3px 6px; font-size: 12px; }
 .portal-link-row .portal-link-icon-input { flex: 0 0 56px; min-width: 56px; }
 .portal-link-row .checkbox { flex: 0 0 auto; white-space: nowrap; }
 
+.historico-presets-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); max-width: 640px; }
+.historico-preset-row { display: flex; gap: var(--space-2); align-items: center; }
+.historico-preset-row input { flex: 2; }
+.historico-preset-row select { flex: 1; }
+
 .seg { display: inline-flex; flex-wrap: wrap; overflow: hidden; border: 1px solid var(--color-divider); border-radius: var(--radius-md); margin-top: var(--space-3); }
 .seg-opt { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
@@ -1270,6 +1275,10 @@ Tenant ID: ...
               <input id="default-checklist-approver-role-input" class="input" type="text" placeholder="Ex.: Coordenador da Consultoria">
             </div>
             <div class="field">
+              <label for="default-checklist-approver-name-input">Aprovador padrão (parceiro)</label>
+              <select id="default-checklist-approver-name-input" class="input"></select>
+            </div>
+            <div class="field">
               <label for="default-checklist-presente-input">"Presente" padrão dos participantes</label>
               <select id="default-checklist-presente-input" class="input">
                 <option value="Sim">Sim</option>
@@ -1279,6 +1288,15 @@ Tenant ID: ...
               </select>
             </div>
           </div>
+          <div class="field" style="margin-top:var(--space-3);max-width:420px;">
+            <label for="default-checklist-objective-input">Objetivo padrão</label>
+            <textarea id="default-checklist-objective-input" class="input" rows="3" placeholder="Deixe em branco para usar o texto padrão do sistema."></textarea>
+            <p class="text-muted" style="font-size:13px;">Preenche automaticamente todo novo checklist — não altera os que já foram salvos.</p>
+          </div>
+          <h4 style="margin-top:var(--space-4);">Descrições recorrentes do Histórico de Alterações</h4>
+          <p class="text-muted" style="font-size:13px;">Atalhos de preenchimento rápido no Histórico de Alterações do Checklist — escolher um já marca o Tipo junto.</p>
+          <div id="historico-presets-list" class="historico-presets-list"></div>
+          <button type="button" id="historico-preset-add-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">+ Adicionar</button>
         </div>
 
         <div id="config-section-seguranca" class="config-section" hidden>
@@ -1385,6 +1403,8 @@ Tenant ID: ...
     defaultChecklistSegment: '',
     defaultChecklistRole: '',
     defaultChecklistApproverRole: '',
+    defaultChecklistApproverName: '',
+    defaultChecklistObjective: '',
     defaultChecklistPresente: 'Sim',
     accentColor: '#ec3013',
     fontSize: 'normal',
@@ -1462,7 +1482,11 @@ Tenant ID: ...
   const defaultChecklistSegmentInputEl = document.getElementById('default-checklist-segment-input');
   const defaultChecklistRoleInputEl = document.getElementById('default-checklist-role-input');
   const defaultChecklistApproverRoleInputEl = document.getElementById('default-checklist-approver-role-input');
+  const defaultChecklistApproverNameInputEl = document.getElementById('default-checklist-approver-name-input');
   const defaultChecklistPresenteInputEl = document.getElementById('default-checklist-presente-input');
+  const defaultChecklistObjectiveInputEl = document.getElementById('default-checklist-objective-input');
+  const historicoPresetsListEl = document.getElementById('historico-presets-list');
+  const historicoPresetAddBtnEl = document.getElementById('historico-preset-add-btn');
   const accentColorInputEl = document.getElementById('accent-color-input');
   const fontSizeSwitchEl = document.getElementById('font-size-switch');
   const tableDensitySwitchEl = document.getElementById('table-density-switch');
@@ -2467,6 +2491,8 @@ Tenant ID: ...
     state.defaultChecklistSegment = defaultChecklistSegmentInputEl.value.trim();
     state.defaultChecklistRole = defaultChecklistRoleInputEl.value.trim();
     state.defaultChecklistApproverRole = defaultChecklistApproverRoleInputEl.value.trim();
+    state.defaultChecklistApproverName = defaultChecklistApproverNameInputEl.value;
+    state.defaultChecklistObjective = defaultChecklistObjectiveInputEl.value;
     state.defaultChecklistPresente = defaultChecklistPresenteInputEl.value;
     state.accentColor = accentColorInputEl.value;
     state.fontSize = fontSizeSwitchEl.querySelector('input:checked').value;
@@ -2494,7 +2520,10 @@ Tenant ID: ...
       defaultChecklistSegment: state.defaultChecklistSegment,
       defaultChecklistRole: state.defaultChecklistRole,
       defaultChecklistApproverRole: state.defaultChecklistApproverRole,
+      defaultChecklistApproverName: state.defaultChecklistApproverName,
+      defaultChecklistObjective: state.defaultChecklistObjective,
       defaultChecklistPresente: state.defaultChecklistPresente,
+      historicoPresets: state.historicoPresets,
       accentColor: state.accentColor,
       fontSize: state.fontSize,
       tableDensity: state.tableDensity,
@@ -2590,6 +2619,28 @@ Tenant ID: ...
         state.ata.approvalPartnerRole = state.defaultChecklistApproverRole;
         ataAprovParceiroCargoEl.value = state.ata.approvalPartnerRole;
       }
+    }
+    if (typeof data.defaultChecklistApproverName === 'string') {
+      state.defaultChecklistApproverName = data.defaultChecklistApproverName;
+      defaultChecklistApproverNameInputEl.value = state.defaultChecklistApproverName;
+      if (state.defaultChecklistApproverName && !state.ata.docId && state.ata.approvalPartnerName === 'Bruno Tavares') {
+        state.ata.approvalPartnerName = state.defaultChecklistApproverName;
+        ataAprovParceiroNomeEl.value = state.ata.approvalPartnerName;
+      }
+    }
+    if (typeof data.defaultChecklistObjective === 'string') {
+      state.defaultChecklistObjective = data.defaultChecklistObjective;
+      defaultChecklistObjectiveInputEl.value = state.defaultChecklistObjective;
+      if (state.defaultChecklistObjective && !state.ata.docId && state.ata.objective === ATA_DEFAULT_OBJECTIVE) {
+        state.ata.objective = state.defaultChecklistObjective;
+        ataObjetivoEl.value = state.ata.objective;
+      }
+    }
+    if (Array.isArray(data.historicoPresets)) {
+      const valid = data.historicoPresets.filter(p => p && typeof p.desc === 'string' && p.desc.trim() && ATA_TYPE_OPTIONS.includes(p.type));
+      state.historicoPresets = valid.length ? valid : ATA_HISTORICO_DESC_PRESETS.map(desc => ({ desc, type: ATA_HISTORICO_DESC_TO_TYPE[desc] }));
+      if (typeof renderHistoricoPresetsEditor === 'function') renderHistoricoPresetsEditor();
+      if (typeof renderAtaHistoricoTable === 'function') renderAtaHistoricoTable();
     }
     if (typeof data.defaultChecklistPresente === 'string') {
       state.defaultChecklistPresente = data.defaultChecklistPresente;
@@ -2703,6 +2754,45 @@ Tenant ID: ...
   // renderTeamMembersEditor() itself can't run until ATA_TEAM_MEMBERS
   // exists (defined later, in the Ata module) — called from that
   // module's own init block instead of here.
+
+  // Histórico de Alterações "Descrição" presets — editable { desc, type }
+  // pairs offered as one-click picks in the Checklist's Histórico row
+  // editor (see buildAtaHistoricoColumns(), in the Ata module further
+  // down). Seeded from ATA_HISTORICO_DESC_PRESETS/ATA_HISTORICO_DESC_TO_TYPE
+  // (state.historicoPresets) but fully user-editable from Configurações.
+  function renderHistoricoPresetsEditor() {
+    historicoPresetsListEl.innerHTML = '';
+    state.historicoPresets.forEach((preset, idx) => {
+      const row = document.createElement('div'); row.className = 'historico-preset-row';
+      const input = document.createElement('input'); input.className = 'input'; input.type = 'text';
+      input.placeholder = 'Descrição'; input.value = preset.desc;
+      input.addEventListener('input', () => { preset.desc = input.value; if (typeof renderAtaHistoricoTable === 'function') renderAtaHistoricoTable(); });
+      const select = document.createElement('select'); select.className = 'input';
+      ATA_TYPE_OPTIONS.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; select.appendChild(o); });
+      select.value = preset.type;
+      select.addEventListener('change', () => { preset.type = select.value; if (typeof renderAtaHistoricoTable === 'function') renderAtaHistoricoTable(); });
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'row-remove-btn'; btn.title = 'Remover';
+      btn.textContent = '✕';
+      if (state.historicoPresets.length > 1) {
+        btn.addEventListener('click', () => {
+          state.historicoPresets.splice(idx, 1);
+          renderHistoricoPresetsEditor();
+          if (typeof renderAtaHistoricoTable === 'function') renderAtaHistoricoTable();
+        });
+      } else {
+        btn.disabled = true;
+      }
+      row.append(input, select, btn);
+      historicoPresetsListEl.appendChild(row);
+    });
+  }
+  historicoPresetAddBtnEl.addEventListener('click', () => {
+    state.historicoPresets.push({ desc: '', type: ATA_TYPE_OPTIONS[0] });
+    renderHistoricoPresetsEditor();
+  });
+  // renderHistoricoPresetsEditor() itself can't run until ATA_TYPE_OPTIONS/
+  // state.historicoPresets exist (defined later, in the Ata module) —
+  // called from that module's own init block instead of here.
 
   function subscribeSettings() {
     try {
@@ -2871,7 +2961,11 @@ Tenant ID: ...
       teamMembers: ATA_TEAM_MEMBERS.slice(),
       defaultChecklistLocation: defaultChecklistLocationInputEl.value, defaultChecklistSegment: defaultChecklistSegmentInputEl.value,
       defaultChecklistRole: defaultChecklistRoleInputEl.value, defaultChecklistApproverRole: defaultChecklistApproverRoleInputEl.value,
+      defaultChecklistApproverName: defaultChecklistApproverNameInputEl.value,
+      defaultChecklistObjective: defaultChecklistObjectiveInputEl.value,
       defaultChecklistPresente: defaultChecklistPresenteInputEl.value,
+      historicoPresets: state.historicoPresets.slice(),
+      portalHero: state.portalHero, portalGroups: state.portalGroups,
       accentColor: accentColorInputEl.value, fontSize: fontSizeSwitchEl.querySelector('input:checked').value,
       tableDensity: tableDensitySwitchEl.querySelector('input:checked').value, showHelpText: showHelpTextInputEl.checked,
       defaultTab: defaultTabInputEl.value, savedSort: savedSortInputEl.value,
@@ -3954,6 +4048,9 @@ Tenant ID: ...
     'Entrega do projeto': 'Entrega'
   };
   const ATA_DEFAULT_OBJECTIVE = 'Estruturar o ambiente do cliente no Partner Center, garantindo o correto págamento e resgate dos benefícios Core disponíveis, além de apoiar a expansão comercial através da publicação e cadastro de ofertas no Microsoft Marketplace.';
+  // Editable in Configurações (config-section-checklist) — seeded from the
+  // two constants above, which stay as the shipped defaults/fallback seed.
+  state.historicoPresets = ATA_HISTORICO_DESC_PRESETS.map(desc => ({ desc, type: ATA_HISTORICO_DESC_TO_TYPE[desc] }));
 
   function blankAtaHistoricoRow() { return { date: '', num: '', type: ATA_TYPE_OPTIONS[0], desc: '', responsible: ATA_TEAM_MEMBERS[0], status: ATA_STATUS_OPTIONS[0] }; }
   function blankAtaAcaoRow() { return { desc: '', impact: '', deadline: '', clientResp: '', validated: ATA_VALIDATED_OPTIONS[2] }; }
@@ -3971,14 +4068,14 @@ Tenant ID: ...
       services: Object.fromEntries(ATA_SERVICES.map(s => [s.key, false])),
       technologies: Object.fromEntries(ATA_TECHNOLOGIES.map(t => [t.key, false])),
       levels: Object.fromEntries(ATA_LEVELS.map(l => [l.key, false])),
-      objective: ATA_DEFAULT_OBJECTIVE,
+      objective: state.defaultChecklistObjective || ATA_DEFAULT_OBJECTIVE,
       historico: [blankAtaHistoricoRow()],
       acoes: [blankAtaAcaoRow()],
       participantes: [
         Object.assign(blankAtaParticipanteRow(), { name: ATA_TEAM_MEMBERS[0], company: 'Bluepartner' }),
         blankAtaParticipanteRow()
       ],
-      approvalPartnerName: 'Bruno Tavares', approvalPartnerRole: 'Coordenador da Consultoria', approvalPartnerDate: '',
+      approvalPartnerName: state.defaultChecklistApproverName || ATA_TEAM_MEMBERS[0], approvalPartnerRole: 'Coordenador da Consultoria', approvalPartnerDate: '',
       approvalClientName: '', approvalClientRole: '', approvalClientDate: ''
     };
   }
@@ -4143,18 +4240,27 @@ Tenant ID: ...
     containerEl.appendChild(table);
   }
 
-  const ATA_HISTORICO_COLUMNS = [
-    { key: 'date', label: 'Data', type: 'date' },
-    { key: 'num', label: 'Nº Alt.', type: 'text' },
-    { key: 'type', label: 'Tipo', type: 'select', options: ATA_TYPE_OPTIONS },
-    {
-      key: 'desc', label: 'Descrição da Alteração / Atualização', type: 'preset',
-      options: ATA_HISTORICO_DESC_PRESETS, customLabel: 'Outro (digitar)',
-      onPreset: (row, val) => { row.type = ATA_HISTORICO_DESC_TO_TYPE[val] || row.type; }
-    },
-    { key: 'responsible', label: 'Responsável', type: 'select', options: ATA_TEAM_MEMBERS },
-    { key: 'status', label: 'Status', type: 'select', options: ATA_STATUS_OPTIONS }
-  ];
+  // Built fresh on every render (not a static const like the other column
+  // sets below) because its "desc" preset options come from
+  // state.historicoPresets, which is user-editable from Configurações —
+  // a static array snapshot would go stale as soon as the user edits it.
+  function buildAtaHistoricoColumns() {
+    return [
+      { key: 'date', label: 'Data', type: 'date' },
+      { key: 'num', label: 'Nº Alt.', type: 'text' },
+      { key: 'type', label: 'Tipo', type: 'select', options: ATA_TYPE_OPTIONS },
+      {
+        key: 'desc', label: 'Descrição da Alteração / Atualização', type: 'preset',
+        options: state.historicoPresets.map(p => p.desc), customLabel: 'Outro (digitar)',
+        onPreset: (row, val) => {
+          const preset = state.historicoPresets.find(p => p.desc === val);
+          row.type = (preset && preset.type) || row.type;
+        }
+      },
+      { key: 'responsible', label: 'Responsável', type: 'select', options: ATA_TEAM_MEMBERS },
+      { key: 'status', label: 'Status', type: 'select', options: ATA_STATUS_OPTIONS }
+    ];
+  }
   const ATA_ACOES_COLUMNS = [
     { key: 'desc', label: 'Ação / Pendência', type: 'textarea' },
     { key: 'impact', label: 'Impacto no Projeto', type: 'text' },
@@ -4175,7 +4281,7 @@ Tenant ID: ...
   ];
 
   function renderAtaHistoricoTable() {
-    renderAtaEditableTable(ataHistoricoTableEl, state.ata.historico, ATA_HISTORICO_COLUMNS, 1,
+    renderAtaEditableTable(ataHistoricoTableEl, state.ata.historico, buildAtaHistoricoColumns(), 1,
       () => { debouncedRenderAtaDoc(); scheduleAtaSave(); }, renderAtaHistoricoTable);
   }
   function renderAtaAcoesTable() {
@@ -4444,6 +4550,12 @@ Tenant ID: ...
     fill(ataFacilitadorEl, ATA_TEAM_MEMBERS);
     fill(ataSecretarioEl, ATA_TEAM_MEMBERS);
     fill(ataAprovParceiroNomeEl, ATA_TEAM_MEMBERS);
+    fill(defaultChecklistApproverNameInputEl, ATA_TEAM_MEMBERS);
+    // Preserve the configured default (or fall back to the 1st member)
+    // across re-populates, e.g. when the team list is edited.
+    defaultChecklistApproverNameInputEl.value = ATA_TEAM_MEMBERS.includes(state.defaultChecklistApproverName)
+      ? state.defaultChecklistApproverName
+      : (ATA_TEAM_MEMBERS[0] || '');
   }
 
   function fillAtaFormFromState() {
@@ -4563,6 +4675,7 @@ Tenant ID: ...
   renderAtaParticipantesTable();
   renderAtaDoc();
   renderTeamMembersEditor();
+  renderHistoricoPresetsEditor();
 
   // — ✨ Preencher com IA a partir de anotações brutas (painel lateral) —
   // Reads whatever rough notes the user pasted, asks /api/ai-text for a
