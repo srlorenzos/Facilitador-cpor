@@ -487,6 +487,19 @@ input:checked + .poe-check::after, .poe-check.on::after {
 .ata-edit-table .preset-wrap input { margin-top: 4px; }
 .ata-edit-table .row-remove-btn { background: none; border: none; cursor: pointer; color: var(--color-text); opacity: 0.55; padding: 4px; }
 .ata-edit-table .row-remove-btn:hover { opacity: 1; color: var(--color-accent); }
+.ata-edit-table .row-action-btn { background: none; border: none; cursor: pointer; color: var(--color-text); opacity: 0.55; padding: 4px; font-size: 13px; }
+.ata-edit-table .row-action-btn:hover { opacity: 1; color: var(--color-accent); }
+.ata-edit-table .row-actions { white-space: nowrap; }
+
+/* Resizable columns (Tenant ID table) — table-layout: fixed driven by a
+   <colgroup>, with a draggable handle on the trailing edge of each <th>.
+   Column widths persist per-viewer in localStorage. */
+.tenant-edit-table { table-layout: fixed; }
+.tenant-edit-table th { position: relative; overflow: hidden; text-overflow: ellipsis; }
+.tenant-edit-table td { overflow: hidden; }
+.tenant-edit-table input { min-width: 0; }
+.tenant-edit-table .col-resizer { position: absolute; right: -3px; top: 0; width: 7px; height: 100%; cursor: col-resize; z-index: 1; touch-action: none; }
+.tenant-edit-table .col-resizer:hover, .tenant-edit-table .col-resizer.resizing { background: var(--color-accent); opacity: 0.5; }
 .consult-links { min-width: 130px; }
 
 /* — status badges (Consulta de Tenant ID / Consulta de Elegibilidade) —
@@ -4392,12 +4405,64 @@ Tenant ID: ...
     });
   }
 
+  // Column widths (Excel-style drag-to-resize) — one entry per header
+  // below, in the same order. Persisted per-viewer so it survives reloads.
+  const TENANT_COLUMNS = ['Cliente', 'Domínio', 'Tenant ID', 'Licenças', 'Qtd Licenças', 'Qtd Usuários Ativos', 'Exchange', 'Teams', 'Apps', 'SharePoint', 'Provedor MX', 'Autodiscover', 'Política DMARC', 'Observação', 'Status', ''];
+  const TENANT_DEFAULT_COLWIDTHS = [120, 160, 290, 150, 90, 90, 64, 64, 64, 90, 120, 110, 110, 160, 150, 96];
+  const TENANT_COLWIDTHS_KEY = 'facilitadorCpor:tenantColWidths';
+  function loadTenantColWidths() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(TENANT_COLWIDTHS_KEY) || 'null');
+      if (Array.isArray(raw) && raw.length === TENANT_DEFAULT_COLWIDTHS.length) return raw.slice();
+    } catch (e) { /* ignore */ }
+    return TENANT_DEFAULT_COLWIDTHS.slice();
+  }
+  let tenantColWidths = loadTenantColWidths();
+  function saveTenantColWidths() {
+    try { localStorage.setItem(TENANT_COLWIDTHS_KEY, JSON.stringify(tenantColWidths)); } catch (e) { /* ignore */ }
+  }
+  function insertTenantRow(idx, data) {
+    state.tenant.rows.splice(idx, 0, data || blankTenantRow());
+    renderTenantTable(); renderTenantStats(); onTenantChange();
+  }
+
   function renderTenantTable() {
     tenantTableEl.innerHTML = '';
-    const table = document.createElement('table'); table.className = 'ata-edit-table';
+    const table = document.createElement('table'); table.className = 'ata-edit-table tenant-edit-table';
+
+    const colgroup = document.createElement('colgroup');
+    tenantColWidths.forEach(w => {
+      const col = document.createElement('col'); col.style.width = w + 'px'; colgroup.appendChild(col);
+    });
+    table.appendChild(colgroup);
+
     const thead = document.createElement('thead'); const headRow = document.createElement('tr');
-    ['Cliente', 'Domínio', 'Tenant ID', 'Licenças', 'Qtd Licenças', 'Qtd Usuários Ativos', 'Exchange', 'Teams', 'Apps', 'SharePoint', 'Provedor MX', 'Autodiscover', 'Política DMARC', 'Observação', 'Status', ''].forEach(l => {
-      const th = document.createElement('th'); th.textContent = l; headRow.appendChild(th);
+    TENANT_COLUMNS.forEach((l, colIdx) => {
+      const th = document.createElement('th'); th.textContent = l;
+      if (colIdx < TENANT_COLUMNS.length - 1) {
+        const resizer = document.createElement('span'); resizer.className = 'col-resizer';
+        resizer.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          const startX = e.clientX, startWidth = tenantColWidths[colIdx];
+          resizer.classList.add('resizing');
+          resizer.setPointerCapture(e.pointerId);
+          function onMove(ev) {
+            const newWidth = Math.max(40, startWidth + (ev.clientX - startX));
+            tenantColWidths[colIdx] = newWidth;
+            colgroup.children[colIdx].style.width = newWidth + 'px';
+          }
+          function onUp() {
+            resizer.classList.remove('resizing');
+            resizer.removeEventListener('pointermove', onMove);
+            resizer.removeEventListener('pointerup', onUp);
+            saveTenantColWidths();
+          }
+          resizer.addEventListener('pointermove', onMove);
+          resizer.addEventListener('pointerup', onUp);
+        });
+        th.appendChild(resizer);
+      }
+      headRow.appendChild(th);
     });
     thead.appendChild(headRow); table.appendChild(thead);
     const tbody = document.createElement('tbody');
@@ -4436,10 +4501,14 @@ Tenant ID: ...
       tr.appendChild(textCell('dmarc'));
       tr.appendChild(textCell('notes'));
       const statusTd = document.createElement('td'); refreshBadge(); statusTd.appendChild(badgeSpan); tr.appendChild(statusTd);
-      const actionTd = document.createElement('td');
+      const actionTd = document.createElement('td'); actionTd.className = 'row-actions';
+      const dupBtn = document.createElement('button'); dupBtn.type = 'button'; dupBtn.className = 'row-action-btn'; dupBtn.textContent = '⧉'; dupBtn.title = 'Duplicar esta linha (insere logo abaixo)';
+      dupBtn.addEventListener('click', () => insertTenantRow(idx + 1, { ...row }));
+      const insBtn = document.createElement('button'); insBtn.type = 'button'; insBtn.className = 'row-action-btn'; insBtn.textContent = '+'; insBtn.title = 'Inserir linha em branco abaixo';
+      insBtn.addEventListener('click', () => insertTenantRow(idx + 1));
       const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'row-remove-btn'; btn.textContent = '✕'; btn.title = 'Remover linha';
       btn.addEventListener('click', () => { state.tenant.rows.splice(idx, 1); renderTenantTable(); renderTenantStats(); onTenantChange(); });
-      actionTd.appendChild(btn); tr.appendChild(actionTd);
+      actionTd.append(dupBtn, insBtn, btn); tr.appendChild(actionTd);
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
