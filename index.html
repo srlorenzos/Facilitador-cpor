@@ -282,6 +282,15 @@ select.input { min-height: 30px; padding: 3px 6px; font-size: 12px; }
 .team-member-row { display: flex; gap: var(--space-2); align-items: center; }
 .team-member-row input { flex: 1; }
 
+#portal-groups-editor { max-width: 760px; display: flex; flex-direction: column; gap: var(--space-3); }
+.portal-group-editor { border: 1px solid var(--color-divider); padding: var(--space-3); }
+.portal-group-editor-title-row { display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-3); }
+.portal-group-editor-title-row input { flex: 1; font-weight: 700; }
+.portal-link-row { display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2); flex-wrap: wrap; }
+.portal-link-row input[type="text"] { flex: 1 1 120px; min-width: 90px; }
+.portal-link-row .portal-link-icon-input { flex: 0 0 56px; min-width: 56px; }
+.portal-link-row .checkbox { flex: 0 0 auto; white-space: nowrap; }
+
 .seg { display: inline-flex; flex-wrap: wrap; overflow: hidden; border: 1px solid var(--color-divider); border-radius: var(--radius-md); margin-top: var(--space-3); }
 .seg-opt { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
@@ -1089,60 +1098,13 @@ Tenant ID: ...
     </div>
   </section>
 
-  <!-- Portal / Links úteis -->
+  <!-- Portal / Links úteis — rendered dynamically from state.portalHero /
+       state.portalGroups by renderPortalLinks(); editable in Configurações
+       → 🔗 Portal / Links. See DEFAULT_PORTAL_HERO / DEFAULT_PORTAL_GROUPS
+       for the (unchanged) default content. -->
   <section id="tab-links" class="tab-panel">
-    <div class="portal-hero">
-      <h2>🏢 Portal Bluepartner — Consultoria MAICPP</h2>
-      <p>Os acessos e ferramentas do dia a dia, tudo num lugar só.</p>
-    </div>
-
-    <div class="portal-group">
-      <div class="portal-group-title"><h3 style="margin:0;">📚 Wiki &amp; Aprendizado</h3></div>
-      <div class="portal-grid">
-        <a class="portal-tile" href="https://bluepartnerit.sharepoint.com/:o:/s/BluePartner-ConsultoriaMAICPP451/IgBYfgMUk2VyR6qh-emW-YS-AbFGI0lhA30EnaISf0fKHCg?e=MLqMnl" target="_blank" rel="noopener">
-          <span class="icon">📖</span><span class="title">Wiki da Consultoria</span><span class="desc">Base de conhecimento MAICPP (OneNote)</span>
-        </a>
-        <a class="portal-tile" href="https://learn.microsoft.com/pt-br/" target="_blank" rel="noopener">
-          <span class="icon">🎓</span><span class="title">Microsoft Learn</span><span class="desc">Trilhas, certificações e agendamento de provas</span>
-        </a>
-        <a class="portal-tile" href="https://learn.bluepartner.com.br/dashboard_students" target="_blank" rel="noopener">
-          <span class="icon">🏫</span><span class="title">Learn Bluepartner</span><span class="desc">Treinamentos internos</span>
-        </a>
-      </div>
-    </div>
-
-    <div class="portal-group">
-      <div class="portal-group-title"><h3 style="margin:0;">🔐 Acessos</h3></div>
-      <div class="portal-grid">
-        <a class="portal-tile sensitive" href="https://vault.bitwarden.com/" target="_blank" rel="noopener">
-          <span class="icon">🔑</span><span class="title">Bitwarden</span><span class="desc">Cofre de senhas da equipe</span>
-        </a>
-      </div>
-    </div>
-
-    <div class="portal-group">
-      <div class="portal-group-title"><h3 style="margin:0;">📊 Relatórios &amp; Suporte</h3></div>
-      <div class="portal-grid">
-        <a class="portal-tile" href="https://app.powerbi.com/groups/me/reports/c5bebbe6-ded6-4cc9-8c28-90b8c9438917/d4771b3f3aba374285c7?language=pt-BR&experience=power-bi" target="_blank" rel="noopener">
-          <span class="icon">📈</span><span class="title">Power BI — Revendas</span><span class="desc">Dashboard de revendas</span>
-        </a>
-        <a class="portal-tile" href="https://app.tiflux.com/v/tickets" target="_blank" rel="noopener">
-          <span class="icon">🎫</span><span class="title">Tiflux — Tickets</span><span class="desc">Abertura e acompanhamento de chamados</span>
-        </a>
-      </div>
-    </div>
-
-    <div class="portal-group">
-      <div class="portal-group-title"><h3 style="margin:0;">📋 Projetos (Listas SharePoint)</h3></div>
-      <div class="portal-grid">
-        <a class="portal-tile" href="https://bluepartnerit-my.sharepoint.com/personal/bruno_tavares_bluepartner_com_br/Lists/Consultoria%20MAICPP/AllItems.aspx?viewid=fd529fe8-a473-42c2-9e72-947a48f2ad3d&env=WebViewList" target="_blank" rel="noopener">
-          <span class="icon">🗂️</span><span class="title">Projetos MAICPP</span><span class="desc">Lista de acompanhamento de projetos MAICPP</span>
-        </a>
-        <a class="portal-tile" href="https://bluepartnerit-my.sharepoint.com/personal/bruno_tavares_bluepartner_com_br/Lists/Projetos%20Consultoria/AllItems.aspx?env=WebViewList" target="_blank" rel="noopener">
-          <span class="icon">🗂️</span><span class="title">Projetos Consultoria</span><span class="desc">Lista de acompanhamento de projetos de consultoria</span>
-        </a>
-      </div>
-    </div>
+    <div class="portal-hero" id="portal-hero"></div>
+    <div id="portal-groups-container"></div>
   </section>
 
   <!-- Configurações -->
@@ -1154,6 +1116,7 @@ Tenant ID: ...
       <nav class="config-nav" id="config-nav">
         <button type="button" class="config-nav-btn active" data-config-section="aparencia">🎨 Aparência</button>
         <button type="button" class="config-nav-btn" data-config-section="comportamento">🏠 Comportamento</button>
+        <button type="button" class="config-nav-btn" data-config-section="portal">🔗 Portal / Links</button>
         <button type="button" class="config-nav-btn" data-config-section="equipe">👥 Equipe da consultoria</button>
         <button type="button" class="config-nav-btn" data-config-section="cpor">📧 Padrões do CPOR</button>
         <button type="button" class="config-nav-btn" data-config-section="poe">📄 Padrões do Engagement POE</button>
@@ -1238,6 +1201,21 @@ Tenant ID: ...
             <span class="box"></span>
             <span>Avisar antes de sair ou recarregar a página</span>
           </label>
+        </div>
+
+        <div id="config-section-portal" class="config-section" hidden>
+          <h3>🔗 Portal / Links</h3>
+          <p class="text-muted" style="font-size:13px;">Os links que aparecem na aba Portal / Links — edite, adicione ou remova aqui.</p>
+          <div class="field">
+            <label for="portal-hero-title-input">Título do banner</label>
+            <input id="portal-hero-title-input" class="input" type="text">
+          </div>
+          <div class="field">
+            <label for="portal-hero-subtitle-input">Subtítulo do banner</label>
+            <input id="portal-hero-subtitle-input" class="input" type="text">
+          </div>
+          <div id="portal-groups-editor" style="margin-top:var(--space-4);"></div>
+          <button type="button" id="portal-group-add-btn" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">+ Adicionar grupo</button>
         </div>
 
         <div id="config-section-equipe" class="config-section" hidden>
@@ -1345,6 +1323,30 @@ Tenant ID: ...
     'Abaixo as informações e evidências dos produtos implementados/habilitados na Tenant:'
   ].join('\n');
 
+  // Portal / Links tab — defaults reproduce, field for field, the markup
+  // that used to be hardcoded in <section id="tab-links">. Kept here so a
+  // user who never touches "🔗 Portal / Links" in Configurações sees the
+  // exact same tab as before this became editable.
+  const DEFAULT_PORTAL_HERO = { title: '🏢 Portal Bluepartner — Consultoria MAICPP', subtitle: 'Os acessos e ferramentas do dia a dia, tudo num lugar só.' };
+  const DEFAULT_PORTAL_GROUPS = [
+    { title: '📚 Wiki & Aprendizado', links: [
+      { icon: '📖', title: 'Wiki da Consultoria', desc: 'Base de conhecimento MAICPP (OneNote)', url: 'https://bluepartnerit.sharepoint.com/:o:/s/BluePartner-ConsultoriaMAICPP451/IgBYfgMUk2VyR6qh-emW-YS-AbFGI0lhA30EnaISf0fKHCg?e=MLqMnl', sensitive: false },
+      { icon: '🎓', title: 'Microsoft Learn', desc: 'Trilhas, certificações e agendamento de provas', url: 'https://learn.microsoft.com/pt-br/', sensitive: false },
+      { icon: '🏫', title: 'Learn Bluepartner', desc: 'Treinamentos internos', url: 'https://learn.bluepartner.com.br/dashboard_students', sensitive: false }
+    ]},
+    { title: '🔐 Acessos', links: [
+      { icon: '🔑', title: 'Bitwarden', desc: 'Cofre de senhas da equipe', url: 'https://vault.bitwarden.com/', sensitive: true }
+    ]},
+    { title: '📊 Relatórios & Suporte', links: [
+      { icon: '📈', title: 'Power BI — Revendas', desc: 'Dashboard de revendas', url: 'https://app.powerbi.com/groups/me/reports/c5bebbe6-ded6-4cc9-8c28-90b8c9438917/d4771b3f3aba374285c7?language=pt-BR&experience=power-bi', sensitive: false },
+      { icon: '🎫', title: 'Tiflux — Tickets', desc: 'Abertura e acompanhamento de chamados', url: 'https://app.tiflux.com/v/tickets', sensitive: false }
+    ]},
+    { title: '📋 Projetos (Listas SharePoint)', links: [
+      { icon: '🗂️', title: 'Projetos MAICPP', desc: 'Lista de acompanhamento de projetos MAICPP', url: 'https://bluepartnerit-my.sharepoint.com/personal/bruno_tavares_bluepartner_com_br/Lists/Consultoria%20MAICPP/AllItems.aspx?viewid=fd529fe8-a473-42c2-9e72-947a48f2ad3d&env=WebViewList', sensitive: false },
+      { icon: '🗂️', title: 'Projetos Consultoria', desc: 'Lista de acompanhamento de projetos de consultoria', url: 'https://bluepartnerit-my.sharepoint.com/personal/bruno_tavares_bluepartner_com_br/Lists/Projetos%20Consultoria/AllItems.aspx?env=WebViewList', sensitive: false }
+    ]}
+  ];
+
   // key, label (shown in the builder), heading (shown in the email; null = no heading, just the image),
   // max (1 = single evidence slot, replaced on re-add; Infinity = many)
   const SECTIONS = [
@@ -1391,7 +1393,9 @@ Tenant ID: ...
     defaultTab: 'links',
     savedSort: 'recent',
     savedPageSize: 25,
-    warnUnsavedExit: false
+    warnUnsavedExit: false,
+    portalHero: { ...DEFAULT_PORTAL_HERO },
+    portalGroups: DEFAULT_PORTAL_GROUPS.map(g => ({ title: g.title, links: g.links.map(l => ({ ...l })) }))
   };
 
   // ————————————————————————————————————————————————————————————
@@ -1472,6 +1476,13 @@ Tenant ID: ...
   const importConfigFileEl = document.getElementById('import-config-file');
   const backupNoteEl = document.getElementById('backup-note');
 
+  const portalHeroEl = document.getElementById('portal-hero');
+  const portalGroupsContainerEl = document.getElementById('portal-groups-container');
+  const portalHeroTitleInputEl = document.getElementById('portal-hero-title-input');
+  const portalHeroSubtitleInputEl = document.getElementById('portal-hero-subtitle-input');
+  const portalGroupsEditorEl = document.getElementById('portal-groups-editor');
+  const portalGroupAddBtnEl = document.getElementById('portal-group-add-btn');
+
   function applyAccentColor(hex) {
     document.documentElement.style.setProperty('--color-accent', hex);
   }
@@ -1501,6 +1512,121 @@ Tenant ID: ...
     const key = btn.dataset.configSection;
     configNavEl.querySelectorAll('.config-nav-btn').forEach(b => b.classList.toggle('active', b === btn));
     document.querySelectorAll('.config-section').forEach(s => { s.hidden = s.id !== 'config-section-' + key; });
+  });
+
+  // ————————————————————————————————————————————————————————————
+  // Portal / Links tab — rendered from state.portalHero / state.portalGroups
+  // (defaults: DEFAULT_PORTAL_HERO / DEFAULT_PORTAL_GROUPS), editable in
+  // Configurações → 🔗 Portal / Links. renderPortalLinks() rebuilds the
+  // live tab; it's only called on init and after a save so a persisted
+  // doc change (this browser's or another viewer's) shows up there.
+  // renderPortalLinksEditor() rebuilds the Configurações editor and
+  // mirrors the team-members-list idiom: text inputs mutate state
+  // directly (no re-render, so the field keeps focus while typing) and
+  // only structural changes (add/remove group or link) trigger a full
+  // editor rebuild.
+  // ————————————————————————————————————————————————————————————
+  function renderPortalLinks() {
+    portalHeroEl.innerHTML = '';
+    const heroH2 = document.createElement('h2'); heroH2.textContent = state.portalHero.title;
+    const heroP = document.createElement('p'); heroP.textContent = state.portalHero.subtitle;
+    portalHeroEl.append(heroH2, heroP);
+
+    portalGroupsContainerEl.innerHTML = '';
+    (state.portalGroups || []).forEach(group => {
+      const groupEl = document.createElement('div'); groupEl.className = 'portal-group';
+      const titleWrap = document.createElement('div'); titleWrap.className = 'portal-group-title';
+      const h3 = document.createElement('h3'); h3.style.margin = '0'; h3.textContent = group.title;
+      titleWrap.appendChild(h3);
+      const grid = document.createElement('div'); grid.className = 'portal-grid';
+      (group.links || []).forEach(link => {
+        const a = document.createElement('a');
+        a.className = 'portal-tile' + (link.sensitive ? ' sensitive' : '');
+        a.href = link.url || '#';
+        a.target = '_blank';
+        a.rel = 'noopener';
+        const iconSpan = document.createElement('span'); iconSpan.className = 'icon'; iconSpan.textContent = link.icon || '';
+        const titleSpan = document.createElement('span'); titleSpan.className = 'title'; titleSpan.textContent = link.title || '';
+        const descSpan = document.createElement('span'); descSpan.className = 'desc'; descSpan.textContent = link.desc || '';
+        a.append(iconSpan, titleSpan, descSpan);
+        grid.appendChild(a);
+      });
+      groupEl.append(titleWrap, grid);
+      portalGroupsContainerEl.appendChild(groupEl);
+    });
+  }
+
+  function renderPortalLinksEditor() {
+    portalHeroTitleInputEl.value = state.portalHero.title;
+    portalHeroSubtitleInputEl.value = state.portalHero.subtitle;
+
+    portalGroupsEditorEl.innerHTML = '';
+    (state.portalGroups || []).forEach((group, gIdx) => {
+      if (!Array.isArray(group.links)) group.links = [];
+      const groupEl = document.createElement('div'); groupEl.className = 'portal-group-editor';
+
+      const titleRow = document.createElement('div'); titleRow.className = 'portal-group-editor-title-row';
+      const titleInput = document.createElement('input'); titleInput.className = 'input'; titleInput.type = 'text';
+      titleInput.value = group.title; titleInput.placeholder = 'Título do grupo';
+      titleInput.addEventListener('input', () => { group.title = titleInput.value; });
+      const removeGroupBtn = document.createElement('button'); removeGroupBtn.type = 'button'; removeGroupBtn.className = 'btn btn-secondary btn-sm';
+      removeGroupBtn.textContent = 'Remover grupo';
+      removeGroupBtn.addEventListener('click', () => { state.portalGroups.splice(gIdx, 1); renderPortalLinksEditor(); });
+      titleRow.append(titleInput, removeGroupBtn);
+      groupEl.appendChild(titleRow);
+
+      group.links.forEach((link, lIdx) => {
+        const row = document.createElement('div'); row.className = 'portal-link-row';
+
+        const iconInput = document.createElement('input'); iconInput.className = 'input portal-link-icon-input'; iconInput.type = 'text';
+        iconInput.value = link.icon || ''; iconInput.placeholder = 'Ícone';
+        iconInput.addEventListener('input', () => { link.icon = iconInput.value; });
+
+        const titleInput2 = document.createElement('input'); titleInput2.className = 'input'; titleInput2.type = 'text';
+        titleInput2.value = link.title || ''; titleInput2.placeholder = 'Título';
+        titleInput2.addEventListener('input', () => { link.title = titleInput2.value; });
+
+        const descInput = document.createElement('input'); descInput.className = 'input'; descInput.type = 'text';
+        descInput.value = link.desc || ''; descInput.placeholder = 'Descrição';
+        descInput.addEventListener('input', () => { link.desc = descInput.value; });
+
+        const urlInput = document.createElement('input'); urlInput.className = 'input'; urlInput.type = 'text';
+        urlInput.value = link.url || ''; urlInput.placeholder = 'URL';
+        urlInput.addEventListener('input', () => { link.url = urlInput.value; });
+
+        const sensitiveLabel = document.createElement('label'); sensitiveLabel.className = 'checkbox';
+        const sensitiveInput = document.createElement('input'); sensitiveInput.type = 'checkbox'; sensitiveInput.checked = !!link.sensitive;
+        sensitiveInput.addEventListener('change', () => { link.sensitive = sensitiveInput.checked; });
+        const box = document.createElement('span'); box.className = 'box';
+        const sensitiveText = document.createElement('span'); sensitiveText.textContent = 'Sensível';
+        sensitiveLabel.append(sensitiveInput, box, sensitiveText);
+
+        const removeLinkBtn = document.createElement('button'); removeLinkBtn.type = 'button'; removeLinkBtn.className = 'row-remove-btn'; removeLinkBtn.title = 'Remover link';
+        removeLinkBtn.textContent = '✕';
+        removeLinkBtn.addEventListener('click', () => { group.links.splice(lIdx, 1); renderPortalLinksEditor(); });
+
+        row.append(iconInput, titleInput2, descInput, urlInput, sensitiveLabel, removeLinkBtn);
+        groupEl.appendChild(row);
+      });
+
+      const addLinkBtn = document.createElement('button'); addLinkBtn.type = 'button'; addLinkBtn.className = 'btn btn-secondary btn-sm';
+      addLinkBtn.style.marginTop = 'var(--space-2)';
+      addLinkBtn.textContent = '+ Adicionar link';
+      addLinkBtn.addEventListener('click', () => {
+        group.links.push({ icon: '🔗', title: 'Novo link', desc: '', url: '', sensitive: false });
+        renderPortalLinksEditor();
+      });
+      groupEl.appendChild(addLinkBtn);
+
+      portalGroupsEditorEl.appendChild(groupEl);
+    });
+  }
+
+  portalHeroTitleInputEl.addEventListener('input', () => { state.portalHero.title = portalHeroTitleInputEl.value; });
+  portalHeroSubtitleInputEl.addEventListener('input', () => { state.portalHero.subtitle = portalHeroSubtitleInputEl.value; });
+  portalGroupAddBtnEl.addEventListener('click', () => {
+    state.portalGroups.push({ title: 'Novo grupo', links: [] });
+    renderPortalLinksEditor();
   });
 
   // ————————————————————————————————————————————————————————————
@@ -2376,13 +2502,16 @@ Tenant ID: ...
       defaultTab: state.defaultTab,
       savedSort: state.savedSort,
       savedPageSize: state.savedPageSize,
-      warnUnsavedExit: state.warnUnsavedExit
+      warnUnsavedExit: state.warnUnsavedExit,
+      portalHero: state.portalHero,
+      portalGroups: state.portalGroups
     };
     if (!db) {
       try { localStorage.setItem('facilitadorCpor:settings', JSON.stringify(body)); } catch (e) { /* ignore */ }
       configNoteEl.textContent = 'Salvamento em nuvem indisponível nesta visualização — guardado só neste navegador.';
       configNoteEl.hidden = false;
       renderPreview();
+      renderPortalLinks();
       return;
     }
     try {
@@ -2393,6 +2522,7 @@ Tenant ID: ...
     }
     configNoteEl.hidden = false;
     renderPreview();
+    renderPortalLinks();
   }
   saveConfigBtnEl.addEventListener('click', saveConfig);
 
@@ -2504,10 +2634,34 @@ Tenant ID: ...
       warnUnsavedExitInputEl.checked = state.warnUnsavedExit;
       applyWarnUnsavedExit(state.warnUnsavedExit);
     }
+    if (data.portalHero && typeof data.portalHero === 'object') {
+      state.portalHero = {
+        title: typeof data.portalHero.title === 'string' && data.portalHero.title ? data.portalHero.title : DEFAULT_PORTAL_HERO.title,
+        subtitle: typeof data.portalHero.subtitle === 'string' && data.portalHero.subtitle ? data.portalHero.subtitle : DEFAULT_PORTAL_HERO.subtitle
+      };
+    }
+    if (Array.isArray(data.portalGroups)) {
+      // Trust the shape (it's our own saved data) but still guard against a
+      // malformed/legacy doc throwing and breaking the whole settings load.
+      state.portalGroups = data.portalGroups
+        .filter(g => g && typeof g === 'object')
+        .map(g => ({
+          title: typeof g.title === 'string' ? g.title : '',
+          links: Array.isArray(g.links) ? g.links.filter(l => l && typeof l === 'object').map(l => ({
+            icon: typeof l.icon === 'string' ? l.icon : '',
+            title: typeof l.title === 'string' ? l.title : '',
+            desc: typeof l.desc === 'string' ? l.desc : '',
+            url: typeof l.url === 'string' ? l.url : '',
+            sensitive: !!l.sensitive
+          })) : []
+        }));
+    }
     renderPreview();
     renderPoeDoc();
     if (typeof renderAtaDoc === 'function') renderAtaDoc();
     if (typeof renderSavedDocs === 'function') renderSavedDocs();
+    if (typeof renderPortalLinks === 'function') renderPortalLinks();
+    if (typeof renderPortalLinksEditor === 'function') renderPortalLinksEditor();
   }
 
   // Equipe da consultoria — feeds the Facilitador/Secretário/Responsável/
@@ -2790,6 +2944,8 @@ Tenant ID: ...
   renderFooter();
   renderPreview();
   renderSavedDocs();
+  renderPortalLinks();
+  renderPortalLinksEditor();
   setSaveStatus('', 'Preencha a empresa para salvar automaticamente');
 
   function setStatus(online, text) {
