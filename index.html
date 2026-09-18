@@ -941,6 +941,15 @@ input:checked + .poe-check::after, .poe-check.on::after {
     </div>
 
     <div class="field" style="margin-top:var(--space-3);">
+      <label for="tenant-auto-domains-box">Buscar automaticamente (sem tenantidfinder.com)</label>
+      <p class="text-muted" style="font-size:13px;margin:0 0 var(--space-2);">Ou informe só os domínios (um por linha) que eu busco Tenant ID, MX, DMARC e Autodiscover automaticamente — sem precisar do tenantidfinder.com.</p>
+      <textarea id="tenant-auto-domains-box" class="input paste-box" rows="5" placeholder="empresa.com.br
+outraempresa.com"></textarea>
+      <button id="tenant-auto-lookup-btn" type="button" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">🔎 Buscar automaticamente</button>
+      <div id="tenant-auto-lookup-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+    </div>
+
+    <div class="field" style="margin-top:var(--space-3);">
       <label for="tenant-paste-box">Colar resultado bruto aqui</label>
       <textarea id="tenant-paste-box" class="input paste-box" rows="8" placeholder="Cole exatamente como o site entrega, um domínio atrás do outro:
 
@@ -4182,6 +4191,9 @@ Tenant ID: ...
   const tenantProcessBtnEl = document.getElementById('tenant-process-btn');
   const tenantPasteNoteEl = document.getElementById('tenant-paste-note');
   const tenantCopyDomainsBtnEl = document.getElementById('tenant-copy-domains-btn');
+  const tenantAutoDomainsBoxEl = document.getElementById('tenant-auto-domains-box');
+  const tenantAutoLookupBtnEl = document.getElementById('tenant-auto-lookup-btn');
+  const tenantAutoLookupNoteEl = document.getElementById('tenant-auto-lookup-note');
   const tenantLegendEl = document.getElementById('tenant-legend');
   const tenantStatsEl = document.getElementById('tenant-stats');
   const tenantTableEl = document.getElementById('tenant-table');
@@ -4670,6 +4682,59 @@ Tenant ID: ...
     }
   });
   tenantDownloadBtnEl.addEventListener('click', downloadTenantXlsx);
+
+  // Auto-lookup — one POST to our own /api/tenant-lookup instead of the
+  // manual copy/paste-per-domain round trip through tenantidfinder.com.
+  function parseAutoLookupDomains(text) {
+    return (text || '')
+      .split(/\r?\n/)
+      .map(l => l.trim().replace(/^https?:\/\//i, '').replace(/^www\./i, ''))
+      .filter(l => l && !/\s/.test(l) && l.includes('.'));
+  }
+  tenantAutoLookupBtnEl.addEventListener('click', async () => {
+    const domains = parseAutoLookupDomains(tenantAutoDomainsBoxEl.value);
+    if (!domains.length) {
+      tenantAutoLookupNoteEl.textContent = 'Cole ao menos um domínio válido (um por linha) para buscar.';
+      tenantAutoLookupNoteEl.className = 'save-note err'; tenantAutoLookupNoteEl.hidden = false;
+      return;
+    }
+    const originalLabel = tenantAutoLookupBtnEl.textContent;
+    tenantAutoLookupBtnEl.disabled = true; tenantAutoLookupBtnEl.textContent = 'Buscando…';
+    tenantAutoLookupNoteEl.textContent = `Buscando Tenant ID, MX, DMARC e Autodiscover de ${domains.length} domínio(s)…`;
+    tenantAutoLookupNoteEl.className = 'save-note'; tenantAutoLookupNoteEl.hidden = false;
+    try {
+      const res = await fetch('/api/tenant-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domains })
+      });
+      if (!res.ok) throw new Error('Falha na busca automática');
+      const body = await res.json();
+      const results = body.results || [];
+      let foundCount = 0;
+      const newRows = results.map(result => {
+        const row = blankTenantRow();
+        row.domain = result.domain || '';
+        row.client = guessClientFromDomain(row.domain);
+        row.tenantId = result.tenantId || '';
+        row.mxProvider = inferMxProvider(result.mxLines);
+        row.dmarc = extractDmarcPolicy(result.dmarcRaw);
+        row.autodiscover = result.autodiscover || 'None';
+        if (row.tenantId) foundCount++;
+        return row;
+      });
+      state.tenant.rows = state.tenant.rows.concat(newRows);
+      tenantAutoDomainsBoxEl.value = '';
+      tenantAutoLookupNoteEl.textContent = `${results.length} domínio(s) processado(s) — ${foundCount} com Tenant ID encontrado, ${results.length - foundCount} sem Microsoft.`;
+      tenantAutoLookupNoteEl.className = 'save-note ok'; tenantAutoLookupNoteEl.hidden = false;
+      renderTenantTable(); renderTenantStats(); onTenantChange();
+    } catch (e) {
+      tenantAutoLookupNoteEl.textContent = 'Não foi possível buscar automaticamente agora. Tente novamente ou use o tenantidfinder.com.';
+      tenantAutoLookupNoteEl.className = 'save-note err'; tenantAutoLookupNoteEl.hidden = false;
+    } finally {
+      tenantAutoLookupBtnEl.disabled = false; tenantAutoLookupBtnEl.textContent = originalLabel;
+    }
+  });
 
   renderTenantLegend();
   renderTenantStats();
