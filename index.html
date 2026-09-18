@@ -1982,6 +1982,13 @@ Tenant ID: ...
       time.textContent = dt.toLocaleString('pt-BR');
       row.appendChild(time);
     }
+    if (doc.savedBy) {
+      const savedByEl = document.createElement('span');
+      savedByEl.className = 'text-muted';
+      savedByEl.style.fontSize = '12px';
+      savedByEl.textContent = '👤 ' + doc.savedBy;
+      row.appendChild(savedByEl);
+    }
     const actions = document.createElement('div');
     actions.className = 'actions';
 

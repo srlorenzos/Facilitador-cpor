@@ -51,7 +51,12 @@ app.get('/api/documents/:id', async (req, res) => {
 app.put('/api/documents/:id', async (req, res) => {
   try {
     const container = await getDocumentsContainer();
-    await container.items.upsert({ ...req.body, id: req.params.id });
+    // Identity comes from Azure App Service Authentication (Easy Auth) —
+    // it injects this header itself after validating the Entra ID token,
+    // so it can't be spoofed by the client. Falls back to null when the
+    // app runs without auth in front of it (e.g. local dev).
+    const savedBy = req.headers['x-ms-client-principal-name'] || null;
+    await container.items.upsert({ ...req.body, id: req.params.id, savedBy });
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
