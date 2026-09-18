@@ -571,12 +571,12 @@ input:checked + .poe-check::after, .poe-check.on::after {
 
 <div class="tabbar" role="tablist">
   <button class="tab-btn tab-btn-highlight active" data-tab="links" role="tab">🏢 Portal / Links</button>
+  <button class="tab-btn" data-tab="dashboard" role="tab">📊 Dashboard</button>
   <button class="tab-btn" data-tab="criar-cpor" role="tab">📧 Criar CPOR</button>
   <button class="tab-btn" data-tab="engagement-poe" role="tab">📄 Engagement POE</button>
   <button class="tab-btn" data-tab="ata" role="tab">✅ Checklist de Finalização</button>
   <button class="tab-btn" data-tab="tenant" role="tab">🌐 Tenant ID</button>
   <button class="tab-btn" data-tab="salvos" role="tab">📁 Documentos salvos</button>
-  <button class="tab-btn" data-tab="dashboard" role="tab">📊 Dashboard</button>
   <button class="tab-btn" data-tab="config" role="tab">⚙️ Configurações</button>
 </div>
 
@@ -1505,7 +1505,7 @@ Tenant ID: ...
   function setActiveTab(id) {
     state.activeTab = id;
     tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === id));
-    ['links', 'criar-cpor', 'engagement-poe', 'ata', 'tenant', 'salvos', 'dashboard', 'config'].forEach(t => {
+    ['links', 'dashboard', 'criar-cpor', 'engagement-poe', 'ata', 'tenant', 'salvos', 'config'].forEach(t => {
       document.getElementById('tab-' + t).hidden = t !== id;
     });
     if (id === 'dashboard') renderDashboard();
