@@ -10,6 +10,7 @@ const express = require('express');
 const path = require('path');
 const { randomUUID } = require('node:crypto');
 const { getDocumentsContainer, getSettingsContainer, getAssetsContainerClient } = require('./server/lib/clients');
+const { chatCompletion } = require('./server/lib/openai');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -144,6 +145,55 @@ app.delete('/api/assets/:id', async (req, res) => {
     const container = await getAssetsContainerClient();
     await container.getBlockBlobClient(req.params.id).deleteIfExists();
     res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ————————————————————————————————————————————————————————————
+// AI — Azure OpenAI-backed image classification (replaces the `sample`
+// capability only available in the Claude Artifacts runtime) plus a
+// generic text-completion endpoint for future reuse.
+// ————————————————————————————————————————————————————————————
+function stripCodeFence(text) {
+  const trimmed = String(text || '').trim();
+  const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+  return fenced ? fenced[1].trim() : trimmed;
+}
+
+app.post('/api/classify', async (req, res) => {
+  try {
+    const { prompt, images } = req.body || {};
+    if (!prompt || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ error: 'Corpo inválido: esperado { prompt, images: [dataUrl, ...] }.' });
+    }
+    const content = [
+      { type: 'text', text: prompt },
+      ...images.map((url) => ({ type: 'image_url', image_url: { url, detail: 'low' } }))
+    ];
+    const raw = await chatCompletion([{ role: 'user', content }], { maxTokens: 500, temperature: 0 });
+    let parsed;
+    try {
+      parsed = JSON.parse(stripCodeFence(raw));
+    } catch (e) {
+      return res.status(502).json({ error: 'Resposta da IA não pôde ser interpretada como JSON.' });
+    }
+    res.json(parsed);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ai-text', async (req, res) => {
+  try {
+    const { prompt } = req.body || {};
+    if (!prompt) {
+      return res.status(400).json({ error: 'Corpo inválido: esperado { prompt }.' });
+    }
+    const text = await chatCompletion([{ role: 'user', content: prompt }], { maxTokens: 800, temperature: 0 });
+    res.json({ text });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: e.message });
