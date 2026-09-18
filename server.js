@@ -35,6 +35,78 @@ app.get('/api/documents', async (req, res) => {
   }
 });
 
+// Dashboard aggregate stats — counts across every saved document (CPOR
+// e-mails, Engagement POEs, checklists/Ata, Tenant ID reports), not just
+// the 50-item window `/api/documents` returns for the "Documentos salvos"
+// list. Declared before the `/api/documents/:id` route below so "stats"
+// never gets swallowed as an :id.
+//
+// We pull light projections (`type`/`updatedAt`, and `rows` for tenant
+// docs only) and aggregate in Node rather than relying on a Cosmos DB
+// `GROUP BY` query. `GROUP BY` on a plain property is supported by the
+// SQL API, but grouping by a derived expression (e.g. a YYYY-MM substring
+// of `updatedAt` for the month buckets) is less predictable across Cosmos
+// account/query-engine versions, and this route has no way to be smoke
+// tested against the live account from here — projecting the few fields
+// we need and bucketing client-side (in Node) is the safer default since
+// it only depends on basic SELECT/WHERE, which is universally supported.
+function tenantRowStatusKey(row) {
+  if (!row || !row.tenantId || !String(row.tenantId).trim()) return 'red';
+  if (row.mxProvider && /outlook/i.test(row.mxProvider)) return 'green';
+  return 'yellow';
+}
+
+app.get('/api/documents/stats', async (req, res) => {
+  try {
+    const container = await getDocumentsContainer();
+
+    const { resources: docs } = await container.items
+      .query({ query: 'SELECT c.type, c.updatedAt FROM c' })
+      .fetchAll();
+
+    const byType = {};
+    const byMonth = {};
+    docs.forEach((d) => {
+      const type = d.type || 'outro';
+      byType[type] = (byType[type] || 0) + 1;
+      const month = typeof d.updatedAt === 'string' ? d.updatedAt.slice(0, 7) : null;
+      if (month && /^\d{4}-\d{2}$/.test(month)) {
+        if (!byMonth[month]) byMonth[month] = {};
+        byMonth[month][type] = (byMonth[month][type] || 0) + 1;
+      }
+    });
+
+    // Keep roughly the last 12 calendar months so the payload (and the
+    // frontend's bar "chart") stays small even after years of history.
+    const months = Object.keys(byMonth).sort();
+    const recentMonths = months.slice(-12);
+    const byMonthRecent = {};
+    recentMonths.forEach((m) => { byMonthRecent[m] = byMonth[m]; });
+
+    const { resources: tenantDocs } = await container.items
+      .query({ query: "SELECT c.rows FROM c WHERE c.type = 'tenant'" })
+      .fetchAll();
+
+    const tenantStatus = { green: 0, yellow: 0, red: 0 };
+    tenantDocs.forEach((doc) => {
+      (Array.isArray(doc.rows) ? doc.rows : []).forEach((row) => {
+        tenantStatus[tenantRowStatusKey(row)]++;
+      });
+    });
+    tenantStatus.total = tenantStatus.green + tenantStatus.yellow + tenantStatus.red;
+
+    res.json({
+      totalDocuments: docs.length,
+      byType,
+      byMonth: byMonthRecent,
+      tenantStatus
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/documents/:id', async (req, res) => {
   try {
     const container = await getDocumentsContainer();
