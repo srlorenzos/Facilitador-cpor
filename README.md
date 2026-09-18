@@ -28,7 +28,7 @@ O front-end é um único arquivo estático (`index.html`, HTML/CSS/JS sem depend
 2. **Publicado como site estático simples** (GitHub Pages, Netlify, Vercel, etc.): mesma limitação do modo local — não há passo de build, mas também não há banco de dados por trás.
 3. **Publicado no Azure (produção)**: Azure App Service (Node.js, `server.js` na raiz) servindo `index.html` + a API em [`server/`](server/), com Cosmos DB (histórico de documentos e configurações da equipe) e Blob Storage (imagens anexadas). Nesse modo o salvamento é automático e sincronizado entre dispositivos — é o que fica publicado em **https://facilitador-cpor.azurewebsites.net** a partir deste repositório via GitHub Actions a cada push na branch principal. Veja [`server/README.md`](server/README.md) para as application settings necessárias.
 
-A identificação automática por IA de qual seção cada print pertence é específica do runtime de Claude Artifacts (onde este projeto também roda, usando os mesmos `db`/`assets`) e não está disponível na hospedagem Azure — nela, a classificação é manual pelo seletor de cada imagem.
+A identificação automática por IA de qual seção cada print pertence funciona tanto no runtime de Claude Artifacts (onde este projeto também roda, usando os mesmos `db`/`assets`) quanto na hospedagem Azure — nesta última, via Azure OpenAI (endpoint `/api/classify`, veja [`server/README.md`](server/README.md)).
 
 ## Estrutura do repositório
 
