@@ -139,6 +139,18 @@ app.put('/api/documents/:id', async (req, res) => {
 app.delete('/api/documents/:id', async (req, res) => {
   try {
     const container = await getDocumentsContainer();
+    const currentUser = req.headers['x-ms-client-principal-name'] || null;
+    const { resource } = await container.item(req.params.id, req.params.id).read().catch((e) => {
+      if (e.code === 404) return { resource: null };
+      throw e;
+    });
+    // Only the person who saved a document (or nobody, for older documents
+    // saved before this field existed) can delete it. Ownership check is
+    // server-side only, from Easy Auth's own header - never trust a client
+    // to tell us who it is.
+    if (resource && resource.savedBy && resource.savedBy !== currentUser) {
+      return res.status(403).json({ error: 'Este documento foi salvo por outra pessoa (' + resource.savedBy + ') — você não pode excluí-lo.' });
+    }
     await container.item(req.params.id, req.params.id).delete().catch((e) => {
       if (e.code !== 404) throw e;
     });

@@ -512,6 +512,10 @@ input:checked + .poe-check::after, .poe-check.on::after {
 .tenant-edit-table input { min-width: 0; }
 .tenant-edit-table .col-resizer { position: absolute; right: -3px; top: 0; width: 7px; height: 100%; cursor: col-resize; z-index: 1; touch-action: none; }
 .tenant-edit-table .col-resizer:hover, .tenant-edit-table .col-resizer.resizing { background: var(--color-accent); opacity: 0.5; }
+/* Actions column pinned to the left — stays visible no matter how far
+   right the table is scrolled, so duplicate/insert/remove are always
+   reachable without losing track of which row they're on. */
+.tenant-edit-table th.tenant-actions-col, .tenant-edit-table td.row-actions { position: sticky; left: 0; background: var(--color-bg); z-index: 2; box-shadow: 1px 0 0 var(--color-divider); }
 .consult-links { min-width: 130px; }
 
 /* — status badges (Consulta de Tenant ID / Consulta de Elegibilidade) —
@@ -2318,7 +2322,11 @@ Tenant ID: ...
       if (doc && assets) Object.values(doc.sections || {}).forEach(items => (items || []).forEach(it => assets.delete(it.id).catch(() => {})));
       if (state.docId === docId) state.docId = null;
       if (state.poe && state.poe.docId === docId) state.poe.docId = null;
-    } catch (e) {}
+      state.savedDocs = state.savedDocs.filter(d => d.id !== docId);
+      renderSavedDocs();
+    } catch (e) {
+      alert(e && e.message ? e.message : 'Não foi possível excluir este documento.');
+    }
   }
 
   // ————————————————————————————————————————————————————————————
@@ -2583,7 +2591,11 @@ Tenant ID: ...
         },
         async delete() {
           const res = await fetch(url, { method: 'DELETE' });
-          if (!res.ok) throw new Error('Falha ao excluir documento');
+          if (!res.ok) {
+            let message = 'Falha ao excluir documento';
+            try { const body = await res.json(); if (body && body.error) message = body.error; } catch (e) { /* ignore */ }
+            const err = new Error(message); err.code = res.status; throw err;
+          }
         },
         onSnapshot(onNext, onError) {
           let stopped = false;
@@ -4840,9 +4852,9 @@ ${notes}`;
 
   // Column widths (Excel-style drag-to-resize) — one entry per header
   // below, in the same order. Persisted per-viewer so it survives reloads.
-  const TENANT_COLUMNS = ['Cliente', 'Domínio', 'Tenant ID', 'Licenças', 'Qtd Licenças', 'Qtd Usuários Ativos', 'Exchange', 'Teams', 'Apps', 'SharePoint', 'Provedor MX', 'Autodiscover', 'Política DMARC', 'Observação', 'Status', ''];
-  const TENANT_DEFAULT_COLWIDTHS = [120, 160, 290, 150, 90, 90, 64, 64, 64, 90, 120, 110, 110, 160, 150, 96];
-  const TENANT_COLWIDTHS_KEY = 'facilitadorCpor:tenantColWidths';
+  const TENANT_COLUMNS = ['Ações', 'Cliente', 'Domínio', 'Tenant ID', 'Licenças', 'Qtd Licenças', 'Qtd Usuários Ativos', 'Exchange', 'Teams', 'Apps', 'SharePoint', 'Provedor MX', 'Autodiscover', 'Política DMARC', 'Observação', 'Status'];
+  const TENANT_DEFAULT_COLWIDTHS = [96, 120, 160, 290, 150, 90, 90, 64, 64, 64, 90, 120, 110, 110, 160, 150];
+  const TENANT_COLWIDTHS_KEY = 'facilitadorCpor:tenantColWidths:v2'; // v2 — Ações moved to the first column
   function loadTenantColWidths() {
     try {
       const raw = JSON.parse(localStorage.getItem(TENANT_COLWIDTHS_KEY) || 'null');
@@ -4872,6 +4884,7 @@ ${notes}`;
     const thead = document.createElement('thead'); const headRow = document.createElement('tr');
     TENANT_COLUMNS.forEach((l, colIdx) => {
       const th = document.createElement('th'); th.textContent = l;
+      if (colIdx === 0) th.className = 'tenant-actions-col';
       if (colIdx < TENANT_COLUMNS.length - 1) {
         const resizer = document.createElement('span'); resizer.className = 'col-resizer';
         resizer.addEventListener('pointerdown', (e) => {
@@ -4919,6 +4932,14 @@ ${notes}`;
         input.addEventListener('change', () => { row[key] = input.checked; onTenantChange(); });
         td.appendChild(input); return td;
       }
+      const actionTd = document.createElement('td'); actionTd.className = 'row-actions';
+      const dupBtn = document.createElement('button'); dupBtn.type = 'button'; dupBtn.className = 'row-action-btn'; dupBtn.textContent = '⧉'; dupBtn.title = 'Duplicar esta linha (insere logo abaixo)';
+      dupBtn.addEventListener('click', () => insertTenantRow(idx + 1, { ...row }));
+      const insBtn = document.createElement('button'); insBtn.type = 'button'; insBtn.className = 'row-action-btn'; insBtn.textContent = '+'; insBtn.title = 'Inserir linha em branco abaixo';
+      insBtn.addEventListener('click', () => insertTenantRow(idx + 1));
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'row-remove-btn'; btn.textContent = '✕'; btn.title = 'Remover linha';
+      btn.addEventListener('click', () => { state.tenant.rows.splice(idx, 1); renderTenantTable(); renderTenantStats(); onTenantChange(); });
+      actionTd.append(dupBtn, insBtn, btn); tr.appendChild(actionTd);
       tr.appendChild(textCell('client'));
       tr.appendChild(textCell('domain'));
       tr.appendChild(textCell('tenantId', { affectsStatus: true }));
@@ -4934,14 +4955,6 @@ ${notes}`;
       tr.appendChild(textCell('dmarc'));
       tr.appendChild(textCell('notes'));
       const statusTd = document.createElement('td'); refreshBadge(); statusTd.appendChild(badgeSpan); tr.appendChild(statusTd);
-      const actionTd = document.createElement('td'); actionTd.className = 'row-actions';
-      const dupBtn = document.createElement('button'); dupBtn.type = 'button'; dupBtn.className = 'row-action-btn'; dupBtn.textContent = '⧉'; dupBtn.title = 'Duplicar esta linha (insere logo abaixo)';
-      dupBtn.addEventListener('click', () => insertTenantRow(idx + 1, { ...row }));
-      const insBtn = document.createElement('button'); insBtn.type = 'button'; insBtn.className = 'row-action-btn'; insBtn.textContent = '+'; insBtn.title = 'Inserir linha em branco abaixo';
-      insBtn.addEventListener('click', () => insertTenantRow(idx + 1));
-      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'row-remove-btn'; btn.textContent = '✕'; btn.title = 'Remover linha';
-      btn.addEventListener('click', () => { state.tenant.rows.splice(idx, 1); renderTenantTable(); renderTenantStats(); onTenantChange(); });
-      actionTd.append(dupBtn, insBtn, btn); tr.appendChild(actionTd);
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
