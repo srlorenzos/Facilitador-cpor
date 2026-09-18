@@ -517,6 +517,25 @@ input:checked + .poe-check::after, .poe-check.on::after {
 .stat-row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin: var(--space-3) 0; }
 .legend-row { display: flex; align-items: center; gap: var(--space-2); font-size: 13px; margin-bottom: 4px; }
 
+/* — Dashboard — */
+.dashboard-ai-card {
+  padding: var(--space-4); background: var(--color-accent-100); border-left: 3px solid var(--color-accent);
+  margin: var(--space-3) 0 var(--space-6);
+}
+.dashboard-ai-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-accent-700); margin-bottom: 6px; }
+.dashboard-ai-text { margin: 0 0 6px; line-height: 1.5; }
+.dashboard-section { margin: var(--space-6) 0; }
+.dashboard-section h2 { font-size: 16px; margin-bottom: var(--space-2); }
+.dashboard-month-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dashboard-month-table th, .dashboard-month-table td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--color-divider); }
+.dashboard-month-table th:first-child, .dashboard-month-table td:first-child { text-align: left; }
+.dashboard-bar-row { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 6px; font-size: 12px; }
+.dashboard-bar-row .bar-label { width: 70px; flex: none; opacity: 0.8; }
+.dashboard-bar-row .bar-track { flex: 1; background: var(--color-surface); border-radius: var(--radius-md); overflow: hidden; height: 16px; display: flex; }
+.dashboard-bar-row .bar-fill { height: 100%; }
+.dashboard-bar-row .bar-total { width: 28px; flex: none; text-align: right; opacity: 0.8; }
+.dashboard-error { padding: var(--space-3); background: #FFC7CE; color: #9C0006; border-radius: var(--radius-md); }
+
 .quick-links { display: flex; gap: var(--space-2); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
 .link-btn {
   display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
@@ -545,6 +564,7 @@ input:checked + .poe-check::after, .poe-check.on::after {
   <button class="tab-btn" data-tab="ata" role="tab">✅ Checklist de Finalização</button>
   <button class="tab-btn" data-tab="tenant" role="tab">🌐 Tenant ID</button>
   <button class="tab-btn" data-tab="salvos" role="tab">📁 Documentos salvos</button>
+  <button class="tab-btn" data-tab="dashboard" role="tab">📊 Dashboard</button>
   <button class="tab-btn" data-tab="config" role="tab">⚙️ Configurações</button>
 </div>
 
@@ -1015,6 +1035,22 @@ Tenant ID: ...
     <div id="saved-sections"></div>
   </section>
 
+  <!-- Dashboard -->
+  <section id="tab-dashboard" class="tab-panel" hidden>
+    <h1>📊 Dashboard</h1>
+    <p class="text-muted page-lede">Visão geral de tudo que a equipe já salvou — CPOR, Engagement POE, Checklists/Ata e relatórios de Tenant ID.</p>
+
+    <div class="dashboard-ai-card" id="dashboard-ai-card">
+      <div class="dashboard-ai-label">✨ Resumo gerado por IA</div>
+      <p id="dashboard-ai-text" class="dashboard-ai-text">Carregando resumo…</p>
+      <div class="text-muted" style="font-size:12px;">Resumo gerado por IA — confira os números abaixo.</div>
+    </div>
+
+    <div id="dashboard-body">
+      <p class="text-muted">Carregando estatísticas…</p>
+    </div>
+  </section>
+
   <!-- Portal / Links úteis -->
   <section id="tab-links" class="tab-panel">
     <div class="portal-hero">
@@ -1135,6 +1171,7 @@ Tenant ID: ...
               <option value="ata">Checklist de Finalização</option>
               <option value="tenant">Tenant ID</option>
               <option value="salvos">Documentos salvos</option>
+              <option value="dashboard">Dashboard</option>
             </select>
           </div>
 
@@ -1434,9 +1471,10 @@ Tenant ID: ...
   function setActiveTab(id) {
     state.activeTab = id;
     tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === id));
-    ['links', 'criar-cpor', 'engagement-poe', 'ata', 'tenant', 'salvos', 'config'].forEach(t => {
+    ['links', 'criar-cpor', 'engagement-poe', 'ata', 'tenant', 'salvos', 'dashboard', 'config'].forEach(t => {
       document.getElementById('tab-' + t).hidden = t !== id;
     });
+    if (id === 'dashboard') renderDashboard();
   }
   tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveTab(btn.dataset.tab)));
 
@@ -2073,6 +2111,143 @@ Tenant ID: ...
       (snap) => { state.savedDocs = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderSavedDocs(); },
       () => {}
     );
+  }
+
+  // ————————————————————————————————————————————————————————————
+  // Dashboard — aggregate stats across every saved document, pulled from
+  // the dedicated /api/documents/stats endpoint (the /api/documents route
+  // above is capped at the 50 most-recently-updated docs, too small a
+  // window for team-wide totals). Rendered on first activation of the tab
+  // (see setActiveTab) rather than eagerly at load. Stat cards render as
+  // soon as the numbers arrive; the AI summary is a separate, non-blocking
+  // call that fills in a moment later.
+  // ————————————————————————————————————————————————————————————
+  const dashboardAiTextEl = document.getElementById('dashboard-ai-text');
+  const dashboardBodyEl = document.getElementById('dashboard-body');
+  const DASHBOARD_TYPE_META = {
+    cpor: { icon: '📧', label: 'CPOR (e-mail)' },
+    poe: { icon: '📄', label: 'Engagement POE' },
+    ata: { icon: '✅', label: 'Checklist de Finalização' },
+    tenant: { icon: '🌐', label: 'Consultas — Tenant ID' }
+  };
+  const DASHBOARD_MONTH_FMT = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' });
+
+  function dashboardMonthLabel(key) {
+    const m = /^(\d{4})-(\d{2})$/.exec(key);
+    if (!m) return key;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, 1);
+    return DASHBOARD_MONTH_FMT.format(d).replace('.', '');
+  }
+
+  function renderDashboardStats(stats) {
+    const byType = stats.byType || {};
+    const wrap = document.createElement('div');
+
+    // Total + by-type stat cards (same .stat-card/.stat-row pattern used
+    // in "Documentos salvos" and the Tenant ID tab).
+    const cardsWrap = document.createElement('div'); cardsWrap.className = 'stat-row';
+    const totalCard = document.createElement('div'); totalCard.className = 'stat-card';
+    totalCard.innerHTML = `<div class="stat-label">Total de documentos</div><div class="stat-value">${stats.totalDocuments || 0}</div>`;
+    cardsWrap.appendChild(totalCard);
+    Object.keys(byType).forEach(t => {
+      const meta = DASHBOARD_TYPE_META[t] || { icon: '📦', label: t };
+      const card = document.createElement('div'); card.className = 'stat-card';
+      card.innerHTML = `<div class="stat-label">${meta.icon} ${meta.label}</div><div class="stat-value">${byType[t]}</div>`;
+      cardsWrap.appendChild(card);
+    });
+    wrap.appendChild(cardsWrap);
+
+    // By-month table — a plain HTML table reads more reliably than CSS
+    // bars across many types/months, and needs no charting library.
+    const monthSection = document.createElement('div'); monthSection.className = 'dashboard-section';
+    const monthKeys = Object.keys(stats.byMonth || {}).sort();
+    if (monthKeys.length) {
+      const heading = document.createElement('h2'); heading.textContent = 'Documentos por mês (últimos 12 meses)';
+      monthSection.appendChild(heading);
+      const typeCols = Object.keys(DASHBOARD_TYPE_META).filter(t => monthKeys.some(m => (stats.byMonth[m] || {})[t]));
+      const table = document.createElement('table'); table.className = 'dashboard-month-table';
+      const thead = document.createElement('thead');
+      thead.innerHTML = `<tr><th>Mês</th>${typeCols.map(t => `<th>${DASHBOARD_TYPE_META[t].icon} ${DASHBOARD_TYPE_META[t].label}</th>`).join('')}<th>Total</th></tr>`;
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      monthKeys.forEach(m => {
+        const row = stats.byMonth[m] || {};
+        const total = Object.values(row).reduce((a, b) => a + b, 0);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${dashboardMonthLabel(m)}</td>${typeCols.map(t => `<td>${row[t] || 0}</td>`).join('')}<td><strong>${total}</strong></td>`;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      monthSection.appendChild(table);
+    } else {
+      const p = document.createElement('p'); p.className = 'text-muted'; p.textContent = 'Ainda não há dados suficientes por mês.';
+      monthSection.appendChild(p);
+    }
+    wrap.appendChild(monthSection);
+
+    // Tenant status — same status-badge palette/labels as the Tenant ID tab.
+    const tenantSection = document.createElement('div'); tenantSection.className = 'dashboard-section';
+    const ts = Object.assign({ green: 0, yellow: 0, red: 0, total: 0 }, stats.tenantStatus || {});
+    const tsHeading = document.createElement('h2'); tsHeading.textContent = 'Status de Tenant ID (todo o histórico)';
+    tenantSection.appendChild(tsHeading);
+    if (ts.total) {
+      const tsCards = document.createElement('div'); tsCards.className = 'stat-row';
+      [
+        ['green', '🟢 Microsoft Ativo', ts.green],
+        ['yellow', '🟡 Tenant Identificado', ts.yellow],
+        ['red', '🔴 Sem Microsoft', ts.red]
+      ].forEach(([key, label, val]) => {
+        const pct = ts.total ? Math.round((val / ts.total) * 100) : 0;
+        const card = document.createElement('div'); card.className = 'stat-card';
+        card.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value"><span class="status-badge ${key}">${val}</span> <span class="text-muted" style="font-size:13px;">${pct}%</span></div>`;
+        tsCards.appendChild(card);
+      });
+      tenantSection.appendChild(tsCards);
+    } else {
+      const p = document.createElement('p'); p.className = 'text-muted'; p.textContent = 'Nenhum relatório de Tenant ID salvo ainda.';
+      tenantSection.appendChild(p);
+    }
+    wrap.appendChild(tenantSection);
+
+    dashboardBodyEl.innerHTML = '';
+    dashboardBodyEl.appendChild(wrap);
+  }
+
+  function buildDashboardAiPrompt(stats) {
+    return `Você é um assistente que resume estatísticas de uma consultoria de TI, em português do Brasil, de forma natural e objetiva (entre 2 e 4 frases corridas, sem listas, sem markdown, sem aspas envolvendo o texto).\n\nDados agregados de documentos salvos (JSON):\n${JSON.stringify(stats)}\n\nEscreva um resumo curto interpretando esses números: o total de documentos, o tipo mais frequente, alguma tendência visível nos meses mais recentes (se houver dados de pelo menos dois meses em byMonth) e, se houver dados em tenantStatus (total > 0), o percentual de tenants com Microsoft 365 ativo (green / total). Responda apenas com o texto do resumo.`;
+  }
+
+  async function renderDashboardAiSummary(stats) {
+    dashboardAiTextEl.textContent = 'Carregando resumo…';
+    try {
+      const res = await fetch('/api/ai-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: buildDashboardAiPrompt(stats) })
+      });
+      if (!res.ok) throw new Error('Falha ao gerar resumo');
+      const body = await res.json();
+      dashboardAiTextEl.textContent = (body.text || '').trim() || 'Não foi possível gerar um resumo desta vez.';
+    } catch (e) {
+      dashboardAiTextEl.textContent = 'Não foi possível gerar o resumo por IA agora — os números abaixo continuam corretos.';
+    }
+  }
+
+  async function renderDashboard() {
+    dashboardBodyEl.innerHTML = '<p class="text-muted">Carregando estatísticas…</p>';
+    dashboardAiTextEl.textContent = 'Carregando resumo…';
+    let stats;
+    try {
+      const res = await fetch('/api/documents/stats');
+      if (!res.ok) throw new Error('Falha ao carregar estatísticas');
+      stats = await res.json();
+    } catch (e) {
+      dashboardBodyEl.innerHTML = '<div class="dashboard-error">Não foi possível carregar as estatísticas agora. Tente novamente mais tarde.</div>';
+      dashboardAiTextEl.textContent = 'Resumo indisponível — não foi possível carregar os dados.';
+      return;
+    }
+    renderDashboardStats(stats);
+    renderDashboardAiSummary(stats); // fire-and-forget: never blocks the stat cards above
   }
 
   async function loadDocument(docId) {
