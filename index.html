@@ -463,6 +463,18 @@ input:checked + .poe-check::after, .poe-check.on::after {
 
 /* — editing UI for the Ata tab (config panel + dynamic tables) — not part
    of the printed document, mirrors the rest of the app's own form style — */
+/* Two-column layout: the fields/tables/preview stay the primary column,
+   with a sticky side column for the AI "fill from raw notes" panel — a
+   clearly separate, clearly labeled assist, never inline with the fields
+   it can fill. */
+.ata-layout { display: flex; gap: var(--space-4); align-items: flex-start; flex-wrap: wrap; margin-top: var(--space-4); }
+.ata-main-col { flex: 2 1 560px; min-width: 0; }
+.ata-ai-col { flex: 1 1 280px; min-width: 280px; position: sticky; top: var(--space-4); }
+.ata-ai-panel { border: 1px solid var(--color-divider); background: var(--color-surface); padding: var(--space-4); }
+.ata-ai-disclaimer {
+  padding: var(--space-3); background: var(--color-accent-100); border-left: 3px solid var(--color-accent);
+  font-size: 13px; margin-bottom: var(--space-3);
+}
 .ata-config-panel { border: 1px solid var(--color-divider); padding: var(--space-4); margin-top: var(--space-3); }
 .ata-config-groups { display: flex; gap: var(--space-6); flex-wrap: wrap; }
 .ata-config-group { flex: 1; min-width: 220px; }
@@ -731,6 +743,9 @@ input:checked + .poe-check::after, .poe-check.on::after {
     <h1>✅ Checklist de Finalização</h1>
     <p class="text-muted page-lede">Preenche a Ata de Reunião de Acompanhamento de Projeto — fiel ao modelo em Excel — e gera o PDF pronto para assinatura.</p>
 
+    <div class="ata-layout">
+    <div class="ata-main-col">
+
     <div class="field">
       <label for="ata-razao-social">Razão social do cliente <span class="required-mark" title="Necessário para salvar automaticamente">*</span></label>
       <input id="ata-razao-social" class="input" type="text" placeholder="Ex.: Cliente Teste LTDA">
@@ -921,6 +936,25 @@ input:checked + .poe-check::after, .poe-check.on::after {
       </button>
     </div>
     <div id="ata-download-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+
+    </div>
+
+    <aside class="ata-ai-col">
+      <div class="ata-ai-panel">
+        <h3 style="margin-top:0;">✨ Preencher com IA a partir de anotações</h3>
+        <div class="ata-ai-disclaimer">
+          Isso usa IA para tentar preencher os campos abaixo a partir do texto colado. Pode errar ou interpretar errado — confira e corrija tudo antes de salvar.
+        </div>
+        <div class="field">
+          <label for="ata-ai-fill-box">Cole aqui suas anotações brutas da reunião</label>
+          <textarea id="ata-ai-fill-box" class="input paste-box" rows="10" placeholder="Cole aqui qualquer anotação bagunçada que você tirou durante/depois da reunião…"></textarea>
+        </div>
+        <button id="ata-ai-fill-btn" type="button" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);width:100%;">✨ Preencher campos com IA</button>
+        <div id="ata-ai-fill-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+      </div>
+    </aside>
+
+    </div>
   </section>
 
 
@@ -4179,6 +4213,167 @@ Tenant ID: ...
   renderAtaParticipantesTable();
   renderAtaDoc();
   renderTeamMembersEditor();
+
+  // — ✨ Preencher com IA a partir de anotações brutas (painel lateral) —
+  // Reads whatever rough notes the user pasted, asks /api/ai-text for a
+  // JSON object of best-guess Ata fields, and merges it in SAFELY:
+  // scalar fields only fill blanks (never overwrite something the user
+  // already typed) and array fields are APPENDED (never replace/delete
+  // existing rows). Always visibly AI-flagged with a disclaimer — this
+  // never runs or overwrites silently.
+  const ataAiFillBoxEl = document.getElementById('ata-ai-fill-box');
+  const ataAiFillBtnEl = document.getElementById('ata-ai-fill-btn');
+  const ataAiFillNoteEl = document.getElementById('ata-ai-fill-note');
+
+  // Mirrors server.js's stripCodeFence — /api/ai-text returns raw
+  // completion text (no server-side JSON parsing like /api/classify
+  // does), so the fence-stripping fallback has to happen here too, since
+  // models sometimes wrap JSON in ```json fences despite instructions.
+  function stripJsonFence(text) {
+    const trimmed = String(text || '').trim();
+    const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+    return fenced ? fenced[1].trim() : trimmed;
+  }
+
+  function buildAtaAiFillPrompt(notes) {
+    return `Você vai ler anotações brutas e desorganizadas, tiradas durante ou logo após uma reunião com um cliente, e extrair dados estruturados para uma Ata de Reunião. Preencha SOMENTE com o que estiver explícito ou claramente implícito no texto — nunca invente informação que não esteja lá.
+
+Responda SOMENTE com um objeto JSON (não um array), sem markdown, sem crases, sem nenhum texto fora do JSON. Omita qualquer chave para a qual não haja informação confiável no texto — não invente valores só para preencher. Formato exato:
+
+{
+  "objective": "string — objetivo da reunião, se mencionado",
+  "razaoSocial": "string — razão social/nome da empresa cliente, se mencionado",
+  "contactName": "string — nome do contato principal do cliente, se mencionado",
+  "contactEmail": "string — e-mail do contato, se mencionado",
+  "contactPhone": "string — telefone do contato, se mencionado",
+  "meetingDate": "string — data da reunião em formato ISO YYYY-MM-DD, se mencionada",
+  "historico": [
+    { "date": "YYYY-MM-DD se souber", "num": "string, se houver", "type": "uma destas opções EXATAS: ${JSON.stringify(ATA_TYPE_OPTIONS)}", "desc": "string — descrição da alteração/atualização", "responsible": "use um destes nomes se corresponder: ${JSON.stringify(ATA_TEAM_MEMBERS)} — senão o nome da pessoa mencionada no texto", "status": "uma destas opções EXATAS: ${JSON.stringify(ATA_STATUS_OPTIONS)}" }
+  ],
+  "acoes": [
+    { "desc": "string — ação/pendência", "impact": "string — impacto no projeto, se mencionado", "deadline": "YYYY-MM-DD se souber", "clientResp": "string — responsável do lado do cliente", "validated": "uma destas opções EXATAS: ${JSON.stringify(ATA_VALIDATED_OPTIONS)}" }
+  ]
+}
+
+Deixe "historico" e "acoes" como arrays vazios (ou omita) se não houver itens claramente identificáveis no texto — não invente linhas.
+
+Anotações brutas:
+${notes}`;
+  }
+
+  function coerceAtaOption(val, options, fallback) {
+    return (typeof val === 'string' && options.includes(val)) ? val : fallback;
+  }
+  function ataStr(val) {
+    return (typeof val === 'string') ? val.trim() : '';
+  }
+
+  // Applies the safety-first merge described above and reports back what
+  // actually changed, so the success note can say exactly that.
+  function mergeAtaAiFill(parsed) {
+    const a = state.ata;
+    const filled = [];
+    [
+      ['objective', 'Objetivo'], ['razaoSocial', 'Razão social'], ['contactName', 'Contato'],
+      ['contactEmail', 'E-mail'], ['contactPhone', 'Telefone'], ['meetingDate', 'Data da reunião']
+    ].forEach(([key, label]) => {
+      const val = ataStr(parsed[key]);
+      if (val && !ataStr(a[key])) { a[key] = val; filled.push(label); }
+    });
+
+    let historicoAdded = 0;
+    if (Array.isArray(parsed.historico)) {
+      parsed.historico.forEach(item => {
+        if (!item || typeof item !== 'object') return;
+        const row = blankAtaHistoricoRow();
+        if (ataStr(item.date)) row.date = ataStr(item.date);
+        if (ataStr(item.num)) row.num = ataStr(item.num);
+        row.type = coerceAtaOption(item.type, ATA_TYPE_OPTIONS, row.type);
+        if (ataStr(item.desc)) row.desc = ataStr(item.desc);
+        if (ataStr(item.responsible)) row.responsible = ataStr(item.responsible);
+        row.status = coerceAtaOption(item.status, ATA_STATUS_OPTIONS, row.status);
+        if (!row.desc) return; // a row with no description isn't a usable finding
+        a.historico.push(row);
+        historicoAdded++;
+      });
+    }
+
+    let acoesAdded = 0;
+    if (Array.isArray(parsed.acoes)) {
+      parsed.acoes.forEach(item => {
+        if (!item || typeof item !== 'object') return;
+        const row = blankAtaAcaoRow();
+        if (ataStr(item.desc)) row.desc = ataStr(item.desc);
+        if (ataStr(item.impact)) row.impact = ataStr(item.impact);
+        if (ataStr(item.deadline)) row.deadline = ataStr(item.deadline);
+        if (ataStr(item.clientResp)) row.clientResp = ataStr(item.clientResp);
+        row.validated = coerceAtaOption(item.validated, ATA_VALIDATED_OPTIONS, row.validated);
+        if (!row.desc) return;
+        a.acoes.push(row);
+        acoesAdded++;
+      });
+    }
+
+    return { filled, historicoAdded, acoesAdded };
+  }
+
+  ataAiFillBtnEl.addEventListener('click', async () => {
+    const notes = ataAiFillBoxEl.value.trim();
+    if (!notes) {
+      ataAiFillNoteEl.textContent = 'Cole algumas anotações da reunião antes de preencher com IA.';
+      ataAiFillNoteEl.className = 'save-note err'; ataAiFillNoteEl.hidden = false;
+      return;
+    }
+    const originalLabel = ataAiFillBtnEl.textContent;
+    ataAiFillBtnEl.disabled = true; ataAiFillBtnEl.textContent = 'Preenchendo…';
+    ataAiFillNoteEl.textContent = 'Lendo as anotações e preenchendo os campos com IA…';
+    ataAiFillNoteEl.className = 'save-note'; ataAiFillNoteEl.hidden = false;
+    try {
+      const res = await fetch('/api/ai-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: buildAtaAiFillPrompt(notes) })
+      });
+      if (!res.ok) throw new Error('Falha ao preencher com IA');
+      const body = await res.json();
+      let parsed;
+      try {
+        parsed = JSON.parse(stripJsonFence(body.text || ''));
+      } catch (e) {
+        ataAiFillNoteEl.textContent = 'A IA respondeu em um formato que não consegui interpretar. Nada foi alterado — tente novamente ou preencha manualmente.';
+        ataAiFillNoteEl.className = 'save-note err'; ataAiFillNoteEl.hidden = false;
+        return;
+      }
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        ataAiFillNoteEl.textContent = 'A IA não retornou dados reconhecíveis nessas anotações. Nada foi alterado.';
+        ataAiFillNoteEl.className = 'save-note err'; ataAiFillNoteEl.hidden = false;
+        return;
+      }
+      const { filled, historicoAdded, acoesAdded } = mergeAtaAiFill(parsed);
+      if (!filled.length && !historicoAdded && !acoesAdded) {
+        ataAiFillNoteEl.textContent = 'A IA não encontrou nada de novo para preencher nessas anotações (ou os campos correspondentes já estavam preenchidos).';
+        ataAiFillNoteEl.className = 'save-note err'; ataAiFillNoteEl.hidden = false;
+        return;
+      }
+      fillAtaFormFromState();
+      renderAtaHistoricoTable();
+      renderAtaAcoesTable();
+      debouncedRenderAtaDoc();
+      scheduleAtaSave();
+      ataAiFillBoxEl.value = '';
+      const parts = [];
+      if (filled.length) parts.push(`${filled.join(', ')} preenchido(s)`);
+      if (historicoAdded) parts.push(`${historicoAdded} item(ns) de histórico adicionado(s)`);
+      if (acoesAdded) parts.push(`${acoesAdded} ação(ões) adicionada(s)`);
+      ataAiFillNoteEl.textContent = `${parts.join(', ')}. Campos que já estavam preenchidos não foram alterados — confira tudo antes de salvar, a IA pode errar.`;
+      ataAiFillNoteEl.className = 'save-note ok'; ataAiFillNoteEl.hidden = false;
+    } catch (e) {
+      ataAiFillNoteEl.textContent = 'Não foi possível preencher com IA agora. Tente novamente ou preencha manualmente.';
+      ataAiFillNoteEl.className = 'save-note err'; ataAiFillNoteEl.hidden = false;
+    } finally {
+      ataAiFillBtnEl.disabled = false; ataAiFillBtnEl.textContent = originalLabel;
+    }
+  });
 
   // ════════════════════════════════════════════════════════════
   // Shared helper: hand a generated Blob (PDF or spreadsheet) to the
