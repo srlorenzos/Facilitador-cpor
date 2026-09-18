@@ -941,6 +941,14 @@ input:checked + .poe-check::after, .poe-check.on::after {
     </div>
 
     <div class="field" style="margin-top:var(--space-3);">
+      <label for="tenant-ai-extract-box">✨ Extrair domínios de um texto qualquer (IA)</label>
+      <p class="text-muted" style="font-size:13px;margin:0 0 var(--space-2);">Cole qualquer texto bagunçado (e-mail, planilha colada, lista misturada com outras coisas) — a IA separa só os domínios, um por linha, na caixa abaixo. Confira o resultado antes de buscar: a IA pode errar.</p>
+      <textarea id="tenant-ai-extract-box" class="input paste-box" rows="4" placeholder="Cole aqui o texto bruto que tiver os domínios misturados com outras informações…"></textarea>
+      <button id="tenant-ai-extract-btn" type="button" class="btn btn-secondary btn-sm" style="margin-top:var(--space-2);">✨ Extrair domínios com IA</button>
+      <div id="tenant-ai-extract-note" class="save-note" style="margin-top:var(--space-2);" hidden></div>
+    </div>
+
+    <div class="field" style="margin-top:var(--space-3);">
       <label for="tenant-auto-domains-box">Buscar automaticamente (sem tenantidfinder.com)</label>
       <p class="text-muted" style="font-size:13px;margin:0 0 var(--space-2);">Ou informe só os domínios (um por linha) que eu busco Tenant ID, MX, DMARC e Autodiscover automaticamente — sem precisar do tenantidfinder.com.</p>
       <textarea id="tenant-auto-domains-box" class="input paste-box" rows="5" placeholder="empresa.com.br
@@ -4220,6 +4228,9 @@ Tenant ID: ...
   let tenantSaveTimer = null;
 
   const tenantReportNameEl = document.getElementById('tenant-report-name');
+  const tenantAiExtractBoxEl = document.getElementById('tenant-ai-extract-box');
+  const tenantAiExtractBtnEl = document.getElementById('tenant-ai-extract-btn');
+  const tenantAiExtractNoteEl = document.getElementById('tenant-ai-extract-note');
   const tenantPasteBoxEl = document.getElementById('tenant-paste-box');
   const tenantProcessBtnEl = document.getElementById('tenant-process-btn');
   const tenantPasteNoteEl = document.getElementById('tenant-paste-note');
@@ -4715,6 +4726,51 @@ Tenant ID: ...
     }
   });
   tenantDownloadBtnEl.addEventListener('click', downloadTenantXlsx);
+
+  // AI domain extraction — replaces the Copilot step in the user's manual
+  // workflow: paste any messy raw text and get back a clean domain list.
+  // Uses the generic /api/ai-text endpoint (text-only, cheap) — the result
+  // just lands in the auto-lookup textarea below for the user to review
+  // before actually looking anything up, never auto-triggers the lookup.
+  tenantAiExtractBtnEl.addEventListener('click', async () => {
+    const raw = tenantAiExtractBoxEl.value.trim();
+    if (!raw) {
+      tenantAiExtractNoteEl.textContent = 'Cole algum texto para eu extrair os domínios.';
+      tenantAiExtractNoteEl.className = 'save-note err'; tenantAiExtractNoteEl.hidden = false;
+      return;
+    }
+    const originalLabel = tenantAiExtractBtnEl.textContent;
+    tenantAiExtractBtnEl.disabled = true; tenantAiExtractBtnEl.textContent = 'Extraindo…';
+    tenantAiExtractNoteEl.textContent = 'Extraindo domínios com IA…';
+    tenantAiExtractNoteEl.className = 'save-note'; tenantAiExtractNoteEl.hidden = false;
+    try {
+      const prompt = `Extraia todos os domínios de internet (ex: empresa.com, empresa.com.br) mencionados no texto abaixo — ignore nomes de empresa sem domínio, e-mails (extraia só a parte depois do @), URLs completas (extraia só o domínio) e qualquer outro texto.\n\nResponda SOMENTE com um domínio por linha, sem numeração, sem marcadores, sem texto extra. Se não achar nenhum domínio, responda com uma resposta vazia.\n\nTexto:\n${raw}`;
+      const res = await fetch('/api/ai-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      if (!res.ok) throw new Error('Falha na extração');
+      const body = await res.json();
+      const extracted = parseAutoLookupDomains(body.text || '');
+      if (!extracted.length) {
+        tenantAiExtractNoteEl.textContent = 'Não encontrei nenhum domínio nesse texto — confira se colou o trecho certo.';
+        tenantAiExtractNoteEl.className = 'save-note err'; tenantAiExtractNoteEl.hidden = false;
+        return;
+      }
+      const existing = parseAutoLookupDomains(tenantAutoDomainsBoxEl.value);
+      const merged = Array.from(new Set(existing.concat(extracted)));
+      tenantAutoDomainsBoxEl.value = merged.join('\n');
+      tenantAiExtractBoxEl.value = '';
+      tenantAiExtractNoteEl.textContent = `${extracted.length} domínio(s) extraído(s) pela IA e adicionado(s) na caixa abaixo — confira antes de buscar (a IA pode errar).`;
+      tenantAiExtractNoteEl.className = 'save-note ok'; tenantAiExtractNoteEl.hidden = false;
+    } catch (e) {
+      tenantAiExtractNoteEl.textContent = 'Não foi possível extrair agora. Cole os domínios manualmente na caixa abaixo.';
+      tenantAiExtractNoteEl.className = 'save-note err'; tenantAiExtractNoteEl.hidden = false;
+    } finally {
+      tenantAiExtractBtnEl.disabled = false; tenantAiExtractBtnEl.textContent = originalLabel;
+    }
+  });
 
   // Auto-lookup — one POST to our own /api/tenant-lookup instead of the
   // manual copy/paste-per-domain round trip through tenantidfinder.com.
