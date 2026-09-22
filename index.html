@@ -470,10 +470,12 @@ input:checked + .poe-check::after, .poe-check.on::after {
 .ata-approval-col .hdr { font-weight: 700; background: #F0F0F0; padding: 2px 8px; border-bottom: 1px solid #000; }
 .ata-approval-col .line { padding: 2px 8px; }
 
-.ata-footer-bar { text-align: center; font-size: 7.5px; color: #888; border: 1px solid #000; border-top: none; padding: 2px; }
-.ata-footer-bar.rule { color: #0078D4; letter-spacing: -1px; }
+.ata-footer-bar { text-align: center; font-size: 7.5px; color: #888; font-style: italic; border: 1px solid #000; border-top: none; padding: 2px; }
+.ata-footer-bar.rule { padding: 4px 2px; }
+.ata-footer-bar.rule span { display: block; height: 1px; background: #0078D4; }
 .ata-footer-bar.pmbok { color: #666; }
 .ata-footer-bar.last { border-bottom: 1px solid #000; }
+.ata-footer-bar.blue { color: #0078D4; font-style: normal; }
 
 /* — editing UI for the Ata tab (config panel + dynamic tables) — not part
    of the printed document, mirrors the rest of the app's own form style — */
@@ -4419,8 +4421,15 @@ Tenant ID: ...
       'participantes'
     ));
 
+    // Approval grid + closing footer are wrapped in one element so pagination
+    // (which measures/moves top-level blocks whole) never splits them apart
+    // onto their own near-empty trailing page — they move together, either
+    // fitting at the bottom of the last content page or starting a clean
+    // new one.
+    const closingEl = document.createElement('div'); closingEl.className = 'ata-closing';
+
     const approvalBarEl = document.createElement('div'); approvalBarEl.className = 'ata-approval-bar'; approvalBarEl.textContent = 'APROVAÇÃO DO DOCUMENTO';
-    blocks.push(approvalBarEl);
+    closingEl.appendChild(approvalBarEl);
     const approvalGrid = document.createElement('div'); approvalGrid.className = 'ata-approval-grid';
     function approvalCol(label, name, role, date) {
       const c = document.createElement('div'); c.className = 'ata-approval-col';
@@ -4434,18 +4443,23 @@ Tenant ID: ...
       approvalCol(`Responsável ${a.brand || 'Parceiro'}:`, a.approvalPartnerName, a.approvalPartnerRole, a.approvalPartnerDate),
       approvalCol('Responsável Cliente:', a.approvalClientName, a.approvalClientRole, a.approvalClientDate)
     );
-    blocks.push(approvalGrid);
+    closingEl.appendChild(approvalGrid);
 
+    // Faithful to the source Excel template: copyright line, a thin blue
+    // rule, the PMBOK credit, then the copyright line again in blue. Two
+    // copyright lines is intentional here, not a duplication bug.
     const brandName = a.brand || 'Bluepartner';
     const brandSubName = a.brandSub || 'Microsoft Partner Ecosystem';
     const footer1 = document.createElement('div'); footer1.className = 'ata-footer-bar'; footer1.textContent = `© ${brandName} - ${brandSubName} | Documento Confidencial`;
-    blocks.push(footer1);
-    const footerRule = document.createElement('div'); footerRule.className = 'ata-footer-bar rule'; footerRule.textContent = '─'.repeat(90);
-    blocks.push(footerRule);
+    closingEl.appendChild(footer1);
+    const footerRule = document.createElement('div'); footerRule.className = 'ata-footer-bar rule'; footerRule.appendChild(document.createElement('span'));
+    closingEl.appendChild(footerRule);
     const footerPmbok = document.createElement('div'); footerPmbok.className = 'ata-footer-bar pmbok'; footerPmbok.textContent = 'Documento baseado nas melhores práticas do PMBOK® - Project Management Body of Knowledge';
-    blocks.push(footerPmbok);
-    const footer2 = document.createElement('div'); footer2.className = 'ata-footer-bar last'; footer2.textContent = `© ${brandName} - ${brandSubName} | Documento Confidencial`;
-    blocks.push(footer2);
+    closingEl.appendChild(footerPmbok);
+    const footer2 = document.createElement('div'); footer2.className = 'ata-footer-bar last blue'; footer2.textContent = `© ${brandName} - ${brandSubName} | Documento Confidencial`;
+    closingEl.appendChild(footer2);
+
+    blocks.push(closingEl);
 
     return blocks;
   }
