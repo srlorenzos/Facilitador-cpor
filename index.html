@@ -4465,13 +4465,19 @@ Tenant ID: ...
   }
 
   // — pagination + render —
-  const ATA_PAGE_CONTENT_WIDTH = 816 - 96;
+  // Content width/font here MUST match .ata-page's own box (816px wide,
+  // 34px left/right padding = 748px content; font-family/size/line-height
+  // from .ata-page too) — measuring at the wrong width or in the browser's
+  // default font wraps text differently than the real page does, inflating
+  // (or shrinking) measured heights and throwing pagination off, e.g.
+  // pushing a block to a new page that would actually have fit.
+  const ATA_PAGE_CONTENT_WIDTH = 816 - 34 - 34;
   const ATA_PAGE_MAX_CONTENT_HEIGHT = 900;
 
   function measureAndPaginateAta(blocks) {
     const probe = document.createElement('div');
     probe.className = 'ata-doc';
-    probe.style.cssText = `position:fixed;left:-99999px;top:0;width:${ATA_PAGE_CONTENT_WIDTH}px;`;
+    probe.style.cssText = `position:fixed;left:-99999px;top:0;width:${ATA_PAGE_CONTENT_WIDTH}px;font-family:Calibri,"Segoe UI",Arial,sans-serif;font-size:9.5px;line-height:1.3;`;
     document.body.appendChild(probe);
     blocks.forEach(b => probe.appendChild(b));
     const heights = blocks.map(b => b.getBoundingClientRect().height);
